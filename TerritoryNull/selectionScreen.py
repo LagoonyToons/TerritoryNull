@@ -91,8 +91,44 @@ class selectionScreen:
             self.screen.blit(self.arrowFlip, (self.arrowFlipX, 150 + (80*x-1) + (35*x)))
         text = basicFont.render("START!", True, pg.Color("green"))
         self.screen.blit(text, (SCREEN_X/2-40, 150+(80*3-1) + (self.offset*3)))
+        self.blitStats()
         pg.display.update()
         self.screen.fill(pg.Color("black"))
+
+    def blitStats(self):
+        #storage list, [hp, fuel, speed, img]
+        tophp = self.finalList[0][0]
+        topfuel = self.finalList[0][1]
+        topspeed = self.finalList[0][2]
+
+        midhp = self.finalList[1][0]
+        midfuel = self.finalList[1][1]
+        midspeed = self.finalList[1][2]
+
+        bothp = self.finalList[2][0]
+        botfuel = self.finalList[2][1]
+        botspeed = self.finalList[2][2]
+
+        textTotalHp = tophp + midhp + bothp
+        textTotalFuel = topfuel + midfuel + botfuel
+        textTotalSpeed = topspeed + midspeed + botspeed
+
+        HP = basicFont.render("HP: " + str(textTotalHp), True, pg.Color("green"))
+        self.screen.blit(HP, (30, 400))
+        FUEL = basicFont.render("FUEL: " + str(textTotalFuel), True, pg.Color("green"))
+        self.screen.blit(FUEL, (30, 470))
+        SPEED = basicFont.render("SPEED: " + str(textTotalSpeed), True, pg.Color("green"))
+        self.screen.blit(SPEED, (30, 540))
+
+        for x in range(textTotalHp):
+            rect=(250 + (x*20), 400, 15, 25)
+            pg.draw.rect(self.screen, pg.Color("red"), rect)
+        for x in range(round(textTotalFuel/500)):
+            rect=(250 + (x*20), 470, 15, 25)
+            pg.draw.rect(self.screen, pg.Color("red"), rect)
+        for x in range(round(textTotalSpeed)):
+            rect=(250 + (x*20), 540, 15, 25)
+            pg.draw.rect(self.screen, pg.Color("red"), rect)
 
     def loadImages(self):
         #self.loadedImages = []

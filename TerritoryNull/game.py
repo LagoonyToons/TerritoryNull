@@ -24,6 +24,10 @@ class Game:
         for piece in self.player.pieceList:
             self.all_sprites.add(piece)
             self.player_pieces.add(piece)
+
+        self.loopCount = 0
+        self.fuelBlit = self.player.fuel
+
         self.gameloop()
 
     def gameloop(self):
@@ -98,10 +102,17 @@ class Game:
             self.player.fuel -= 1
 
     def screenManagement(self):
+        self.loopCount += 1
+        if self.loopCount >= 30:
+            self.fuelBlit = self.player.fuel
+            self.loopCount = 0
+            #40, SCREEN_Y- 100
+        fuelThingy = basicFont.render(str(self.fuelBlit), True, pg.Color("blue"))
+        self.screen.blit(fuelThingy, (20, SCREEN_Y - 50))
         for enemy in self.enemies:
             self.screen.blit(enemy.image, (enemy.x, enemy.y))
         for x in range(0, self.player.hp):
-            self.screen.blit(self.livesImg, (80+(x*30), SCREEN_Y-80))
+            self.screen.blit(self.livesImg, (100+(x*30), SCREEN_Y-80))
         for gravObj in self.grav:
             self.screen.blit(gravObj.imageCenter, (gravObj.x, gravObj.y))
             self.screen.blit(gravObj.imageSurround, (gravObj.x2, gravObj.y2))
