@@ -8,9 +8,9 @@ class selectionScreen:
         self.screen = screen
         self.music = music
 
-        self.listOfTop = ["rocket_top.png", "basicTop.png", "penTop.png"]
-        self.listOfMid = ["rocket_mid.png", "basicMid.png", "penMid.png"]
-        self.listOfBot = ["rocket_bot.png", "basicBot.png", "penBot.png"]
+        self.listOfTop = ["image/rocket_top.png", "image/basicTop.png", "image/penTop.png"]
+        self.listOfMid = ["image/rocket_mid.png", "image/basicMid.png", "image/penMid.png"]
+        self.listOfBot = ["image/rocket_bot.png", "image/basicBot.png", "image/penBot.png"]
         self.loadImages()
         self.genStats()
         self.loop()
@@ -110,7 +110,7 @@ class selectionScreen:
             self.img = pg.transform.scale(pg.image.load(x), (80, 80))
             self.botImages.append(self.img)
 
-        self.arrow = pg.transform.scale(pg.image.load("images/arrow.png"), (64, 64))
+        self.arrow = pg.transform.scale(pg.image.load("image/arrow.png"), (64, 64))
         self.arrowFlip = pg.transform.rotate(self.arrow, 180)
 
     def genStats(self):

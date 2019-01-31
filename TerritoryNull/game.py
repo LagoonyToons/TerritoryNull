@@ -15,6 +15,7 @@ class Game:
         self.all_sprites = pg.sprite.Group()
         self.player_pieces = pg.sprite.Group()
         self.enemies = pg.sprite.Group()
+        self.grav = pg.sprite.Group()
 
         self.load_images()
 
@@ -26,17 +27,22 @@ class Game:
         self.gameloop()
 
     def gameloop(self):
-        self.music.songState()
         self.counter = 0
         while not self.dead:
+            self.music.songState()
             self.enemySpawn()
             self.controls()
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
                     return
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_SPACE:
+                        self.music.switchSong()
             for enemy in self.enemies:
                 enemy.update(self.player)
+            for gravObj in self.grav:
+                gravObj.update(self.enemies, self.player)
             self.highScore += 11
             self.dead = self.player.update()
             self.screenManagement()
@@ -48,12 +54,20 @@ class Game:
             self.counter = 0
             randomSize = random.randint(64, 128)
             x = random.randint(0, SCREEN_X-100)
-            randomEnemyChoice = random.randint(0,1)
-            if randomEnemyChoice == 0:
+            randomEnemyChoice = random.randint(0,200)
+            if randomEnemyChoice <= 150:
                 enemy = Asteroid(randomSize, x, 0)
+                self.enemies.add(enemy)
+            elif randomEnemyChoice <= 170:
+                if len(self.grav) == 0:
+                    gravObj = GravityField()
+                    self.grav.add(gravObj)
+            elif randomEnemyChoice <= 171:
+                enemy = Heal(x, 0)
+                self.enemies.add(enemy)
             else:
                 enemy = Fuel(x, 0)
-            self.enemies.add(enemy)
+                self.enemies.add(enemy)
             
     def controls(self):
         pressed = pg.key.get_pressed()
@@ -88,6 +102,9 @@ class Game:
             self.screen.blit(enemy.image, (enemy.x, enemy.y))
         for x in range(0, self.player.hp):
             self.screen.blit(self.livesImg, (80+(x*30), SCREEN_Y-80))
+        for gravObj in self.grav:
+            self.screen.blit(gravObj.imageCenter, (gravObj.x, gravObj.y))
+            self.screen.blit(gravObj.imageSurround, (gravObj.x2, gravObj.y2))
         self.screen.blit(self.player.top_piece.image1, (self.player.top_piece.x, self.player.top_piece.y))
         self.screen.blit(self.player.mid_piece.image1, (self.player.mid_piece.x, self.player.mid_piece.y))
         self.screen.blit(self.player.bot_piece.image1, (self.player.bot_piece.x, self.player.bot_piece.y))
@@ -101,7 +118,7 @@ class Game:
         self.clock.tick(60)
     
     def load_images(self):
-        self.livesImg = pg.transform.scale(pg.image.load("lives.png"), (80, 80))
+        self.livesImg = pg.transform.scale(pg.image.load("image/lives.png"), (80, 80))
 
     def fuelblit(self):
         fuelratio = self.player.fuel/self.player.maxFuel

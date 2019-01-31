@@ -1,6 +1,7 @@
 import pygame as pg
 from options import *
 import pickle
+import sys
 
 class HighScoreMenu:
     def __init__(self, screen, music, score):
@@ -32,15 +33,15 @@ class HighScoreMenu:
                 if event.type == pg.KEYDOWN:
                     return
             
-            text = basicFont.render(str(self.highscores[0]) + " : " + str(self.highscores[1]), True, pg.Color("blue"))
+            text = basicFont.render(str(self.highscores[0]) + " : " + str(self.highscores[1]), True, pg.Color("royalblue"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*2/8))
             text = basicFont.render(str(self.highscores[2]) + " : " + str(self.highscores[3]), True, pg.Color("green"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*3/8))
-            text = basicFont.render(str(self.highscores[4]) + " : " + str(self.highscores[5]), True, pg.Color("red"))
+            text = basicFont.render(str(self.highscores[4]) + " : " + str(self.highscores[5]), True, pg.Color("yellow"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*4/8))
             text = basicFont.render(str(self.highscores[6]) + " : " + str(self.highscores[7]), True, pg.Color("orange"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*5/8))
-            text = basicFont.render(str(self.highscores[8]) + " : " + str(self.highscores[9]), True, pg.Color("white"))
+            text = basicFont.render(str(self.highscores[8]) + " : " + str(self.highscores[9]), True, pg.Color("red"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*6/8))
             pg.display.update()
             self.screen.fill(pg.Color("black"))

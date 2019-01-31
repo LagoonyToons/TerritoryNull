@@ -5,12 +5,12 @@ import random
 class Asteroid(pg.sprite.Sprite):
     def __init__(self, size, x, y):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.transform.scale(pg.image.load("meteor.png"), (size, size))
+        self.image = pg.transform.scale(pg.image.load("image/meteor.png"), (size, size))
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
-        self.speed = random.randint(2, 6)
+        self.speed = random.randint(3, 8)
     def update(self, player):
         if self.y >= SCREEN_Y:
             self.kill()
@@ -26,7 +26,7 @@ class Asteroid(pg.sprite.Sprite):
 class Fuel(pg.sprite.Sprite):
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.transform.scale(pg.image.load('fuel.png'), (80, 80))
+        self.image = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -43,3 +43,74 @@ class Fuel(pg.sprite.Sprite):
             if player.fuel > player.maxFuel:
                 player.fuel = player.maxFuel
             self.kill()
+
+class Heal(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
+        self.x, self.y = (x, y)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+        self.speed = random.randint(4, 8)
+    def update(self, player):
+        if self.y >= SCREEN_Y:
+            self.kill()
+        else:
+            self.y += self.speed
+            self.rect.y = self.y
+        if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
+            player.hp += 1
+            self.kill()
+
+
+class GravityField(pg.sprite.Sprite):
+    def __init__(self):
+        self.size = 80
+        self.size2 = 200
+        pg.sprite.Sprite.__init__(self)
+        self.imageCenter = pg.transform.scale(pg.image.load('image/gravitycenter.png'), (self.size, self.size))
+        self.imageSurround = pg.transform.scale(pg.image.load('image/gravityfield.png'), (self.size2, self.size2))
+        self.side = random.randint(0,1)
+        if self.side == 0:
+            self.x, self.y = (random.randint(0, 150), random.randint(200, SCREEN_Y-250))
+            self.pull = -3
+        elif self.side == 1:
+            self.x, self.y = (random.randint(SCREEN_X-190,SCREEN_X-40), random.randint(200, SCREEN_Y-250))
+            self.pull = 3
+        self.x2 = self.x - (self.size2-self.size)/2
+        self.y2 = self.y - (self.size2-self.size)/2
+        self.rect = self.imageCenter.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+        self.lifeCount = 0
+        self.invulnerableFrames = 0
+    def update(self, enemies, player):
+        self.lifeCount += 1
+        self.invulnerableFrames += 1
+        if self.lifeCount >= 360:
+            self.kill()
+        for enemy in enemies:
+            enemy.x += self.pull
+            enemy.rect.x = enemy.x
+            enemy.y -= 2
+            enemy.rect.y = enemy.y
+            if enemy.x <= 0:
+                enemy.x = SCREEN_X -100
+                enemy.rect.x = enemy.x
+            if enemy.x >= SCREEN_X-50:
+                enemy.x = 50
+                enemy.rect.x = enemy.x
+        if player.top_piece.x + self.pull*2 + 80 <= SCREEN_X and player.top_piece.x + self.pull*2 >= 0:
+            player.top_piece.x += self.pull*2/3
+            player.bot_piece.x += self.pull*2/3
+            player.mid_piece.x += self.pull*2/3
+
+            player.top_piece.rect.x = player.top_piece.x
+            player.bot_piece.rect.x = player.bot_piece.x
+            player.mid_piece.rect.x = player.mid_piece.x
+        if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
+            if self.invulnerableFrames >= 60:
+                player.hp -= 1
+                self.kill()

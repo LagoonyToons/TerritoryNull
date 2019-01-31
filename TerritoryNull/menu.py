@@ -14,7 +14,7 @@ class Menu:
         self.clock = pg.time.Clock()
         self.loop()
     def loadImages(self):
-        self.arrowImg = pg.image.load("images/arrow.png")
+        self.arrowImg = pg.image.load("image/arrow.png")
 
         
     def loop(self):

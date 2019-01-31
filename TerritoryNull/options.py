@@ -36,7 +36,7 @@ class songThread(threading.Thread):
              #'sounds/WagonWheel.ogg', 'sounds/zelda.ogg', 'sounds/bonetrousle.ogg', 'sounds/allstar.ogg']
 class Start:
     def __init__(self):
-        self.songList = ['sounds/OPM.ogg', "sounds/zelda.ogg"]
+        self.songList = ['sounds/OPM.ogg', "sounds/zelda.ogg", "sounds/jeez.ogg"]
         self.thread1 = songThread(1, "Thread-1", self.songList)
         self.thread1.start()
         self.volume = 0
