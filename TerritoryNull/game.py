@@ -3,6 +3,7 @@ from options import *
 from player import *
 from enemy import *
 import random
+import sys
 
 class Game:
     def __init__(self, screen, music, playerStats):
@@ -34,19 +35,15 @@ class Game:
         self.counter = 0
         while not self.dead:
             self.music.songState()
-            self.enemySpawn()
             self.controls()
-            events = pg.event.get()
-            for event in events:
-                if event.type == pg.QUIT:
-                    return
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_SPACE:
-                        self.music.switchSong()
-            for enemy in self.enemies:
-                enemy.update(self.player)
-            for gravObj in self.grav:
-                gravObj.update(self.enemies, self.player)
+            if self.player.timeStopTimer > 0:
+                self.player.timeStopTimer -= 1
+            else:
+                self.enemySpawn()
+                for enemy in self.enemies:
+                    enemy.update(self.player)
+                for gravObj in self.grav:
+                    gravObj.update(self.enemies, self.player)
             self.highScore += 11
             self.dead = self.player.update()
             self.screenManagement()
@@ -74,6 +71,19 @@ class Game:
                 self.enemies.add(enemy)
             
     def controls(self):
+        events = pg.event.get()
+        for event in events:
+            if event.type == pg.QUIT:
+                sys.exit()
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_p:
+                    self.music.switchSong()
+                if event.key == pg.K_SPACE:
+                    self.player.abilityStateMachine(self.player.ability, self.player.abilityTimer)
+                if event.key == pg.K_e:
+                    self.player.abilityStateMachine(self.player.ability2, self.player.abilityTimer2)
+                if event.key == pg.K_q:
+                    self.music.volumeToggle()
         pressed = pg.key.get_pressed()
         if pressed[pg.K_LEFT] and self.player.fuel > 0:
             self.player.mid_piece.update(-self.player.speed, 0, self.player.top_piece.x, self.player.top_piece.y)
@@ -89,7 +99,8 @@ class Game:
             self.player.mid_piece.update(0, 0, self.player.top_piece.x, self.player.top_piece.y)
             self.player.bot_piece.update(0, 0, self.player.top_piece.x, self.player.top_piece.y)
             self.player.top_piece.update(0, 0)
-            self.player.fuel -= 1
+            if self.player.fuel > 0:
+                self.player.fuel -= 1
         if pressed[pg.K_UP] and self.player.fuel > 0:
             self.player.mid_piece.update(0, -self.player.speed, self.player.top_piece.x, self.player.top_piece.y)
             self.player.bot_piece.update(0, -self.player.speed, self.player.top_piece.x, self.player.top_piece.y)

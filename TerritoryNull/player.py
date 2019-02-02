@@ -16,13 +16,65 @@ class Player():
         self.mid_piece = rocketPiece(playerList[1][3], 1, self.midx, self.midy, self.midw, self.midh, self.toph, self.midh)
         self.bot_piece = rocketPiece(playerList[2][3], 2, self.botx, self.boty, self.botw, self.both, self.toph, self.midh)
         self.pieceList = [self.top_piece, self.mid_piece, self.bot_piece]
+
+        self.ability = playerList[3][1]
+        self.abilityTimer = 0
+
+        self.ability2 = playerList[4][1]
+        self.abilityTimer2 = 0
+
+        # self.ability = "heal"
+        # self.abilityTimer = 0
+
+        # self.ability2 = "timeStop"
+        # self.abilityTimer2 = 0
+
+        self.timeStopTimer = 0
+
     def update(self):
+        if self.abilityTimer > 0:
+            self.abilityTimer -= 1
+        if self.abilityTimer2 > 0:
+            self.abilityTimer2 -= 1
+        return self.isDead()
+
+    def isDead(self):
         if self.hp <= 0:
-            dead = True
-            return dead
-        else:
-            dead = False
-            return dead
+            return True
+        return False
+
+    def abilityStateMachine(self, ability, abilityTimer):
+        if ability == "heal":
+            self.heal(abilityTimer)
+        elif ability == "timeStop":
+            self.timeStop(abilityTimer)
+
+    def heal(self, abilityTimer):
+        if abilityTimer == self.abilityTimer:
+            if self.fuel >= 300 and self.abilityTimer <= 0:
+                self.fuel -= 200
+                self.abilityTimer = 60
+                self.hp += 1
+        elif abilityTimer == self.abilityTimer2:
+            if self.fuel >= 300 and self.abilityTimer2 <= 0:
+                self.fuel -= 200
+                self.abilityTimer2 = 60
+                self.hp += 1
+
+    def timeStop(self, abilityTimer):
+        if abilityTimer == self.abilityTimer:
+            if self.fuel >= 500 and abilityTimer <= 0:
+                self.fuel -= 500
+                abilityTimer = 600
+                self.timeStopTimer = 120
+        elif abilityTimer == self.abilityTimer2:
+            if self.fuel >= 500 and self.abilityTimer2 <= 0:
+                self.fuel -= 500
+                self.abilityTimer2 = 600
+                self.timeStopTimer = 120
+
+
+
 
 class rocketPiece(pg.sprite.Sprite):
     def __init__(self, image, position, x, y, sizex, sizey, *args):
