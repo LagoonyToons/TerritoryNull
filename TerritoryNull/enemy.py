@@ -2,18 +2,19 @@
 import pygame as pg
 from options import *
 import random
-class Asteroid(pg.sprite.Sprite):
-    def __init__(self, size, x, y):
-        pg.sprite.Sprite.__init__(self)
-        self.image = pg.transform.scale(pg.image.load("image/meteor.png"), (size, size))
+
+
+class Asteroid():
+    def __init__(self, x, y, image):
+        self.image = image
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(3, 8)
-    def update(self, player):
+    def update(self, player, enemies):
         if self.y >= SCREEN_Y:
-            self.kill()
+            enemies.remove(self)
         else:
             self.y += self.speed
             self.rect.y +=  self.speed
@@ -21,20 +22,19 @@ class Asteroid(pg.sprite.Sprite):
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.hp -= 1
             print(player.hp)
-            self.kill()
+            enemies.remove(self)
 
-class Fuel(pg.sprite.Sprite):
+class Fuel():
     def __init__(self, x, y):
-        pg.sprite.Sprite.__init__(self)
         self.image = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(3, 6)
-    def update(self, player):
+    def update(self, player, enemies):
         if self.y >= SCREEN_Y:
-            self.kill()
+            enemies.remove(self)
         else:
             self.y += self.speed
             self.rect.y = self.y
@@ -42,26 +42,25 @@ class Fuel(pg.sprite.Sprite):
             player.fuel += 500
             if player.fuel > player.maxFuel:
                 player.fuel = player.maxFuel
-            self.kill()
+            enemies.remove(self)
 
-class Heal(pg.sprite.Sprite):
+class Heal():
     def __init__(self, x, y):
-        pg.sprite.Sprite.__init__(self)
         self.image = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(4, 8)
-    def update(self, player):
+    def update(self, player, enemies):
         if self.y >= SCREEN_Y:
-            self.kill()
+            enemies.remove(self)
         else:
             self.y += self.speed
             self.rect.y = self.y
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.hp += 1
-            self.kill()
+            enemies.remove(self)
 
 
 class GravityField(pg.sprite.Sprite):

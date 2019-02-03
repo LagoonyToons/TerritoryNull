@@ -15,7 +15,7 @@ class Game:
 
         self.all_sprites = pg.sprite.Group()
         self.player_pieces = pg.sprite.Group()
-        self.enemies = pg.sprite.Group()
+        self.enemies = []
         self.grav = pg.sprite.Group()
 
         self.load_images()
@@ -41,7 +41,7 @@ class Game:
             else:
                 self.enemySpawn()
                 for enemy in self.enemies:
-                    enemy.update(self.player)
+                    enemy.update(self.player, self.enemies)
                 for gravObj in self.grav:
                     gravObj.update(self.enemies, self.player)
             self.highScore += 11
@@ -53,22 +53,31 @@ class Game:
         self.counter += 1
         if self.counter >= 30:
             self.counter = 0
-            randomSize = random.randint(64, 128)
+            randomSize = random.randint(1, 5)
             x = random.randint(0, SCREEN_X-100)
             randomEnemyChoice = random.randint(0,200)
             if randomEnemyChoice <= 150:
-                enemy = Asteroid(randomSize, x, 0)
-                self.enemies.add(enemy)
+                if randomSize == 1:
+                    enemy = Asteroid(x, 0, self.asteroids1)
+                elif randomSize == 2:
+                    enemy = Asteroid(x, 0, self.asteroids2)
+                elif randomSize == 3:
+                    enemy = Asteroid(x, 0, self.asteroids3)
+                elif randomSize == 4:
+                    enemy = Asteroid(x, 0, self.asteroids4)
+                elif randomSize == 5:
+                    enemy = Asteroid(x, 0, self.asteroids5)
+                self.enemies.append(enemy)
             elif randomEnemyChoice <= 170:
                 if len(self.grav) == 0:
                     gravObj = GravityField()
                     self.grav.add(gravObj)
             elif randomEnemyChoice <= 171:
                 enemy = Heal(x, 0)
-                self.enemies.add(enemy)
+                self.enemies.append(enemy)
             else:
                 enemy = Fuel(x, 0)
-                self.enemies.add(enemy)
+                self.enemies.append(enemy)
             
     def controls(self):
         events = pg.event.get()
@@ -141,6 +150,11 @@ class Game:
     
     def load_images(self):
         self.livesImg = pg.transform.scale(pg.image.load("image/lives.png"), (80, 80))
+        self.asteroids1 = pg.transform.scale(pg.image.load("image/meteor.png"), (80, 80))
+        self.asteroids2 = pg.transform.scale(pg.image.load("image/meteor.png"), (90, 90))
+        self.asteroids3 = pg.transform.scale(pg.image.load("image/meteor.png"), (70, 70))
+        self.asteroids4 = pg.transform.scale(pg.image.load("image/meteor.png"), (128, 128))
+        self.asteroids5 = pg.transform.scale(pg.image.load("image/meteor.png"), (100, 100))
 
     def fuelblit(self):
         fuelratio = self.player.fuel/self.player.maxFuel
