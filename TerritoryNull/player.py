@@ -72,7 +72,7 @@ class Player():
 
     def timeStop(self, abilityTimer):
         if abilityTimer == 1:
-            if self.fuel >= 500 and abilityTimer[0] <= 0:
+            if self.fuel >= 500 and self.abilityTimer[0] <= 0:
                 self.fuel -= 500
                 self.abilityTimer[0] = self.abilityDelay
                 self.timeStopTimer = 120
