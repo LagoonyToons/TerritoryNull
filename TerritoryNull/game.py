@@ -78,7 +78,7 @@ class Game:
             else:
                 enemy = Fuel(x, 0, self.fuelImg)
                 self.enemies.append(enemy)
-            
+
     def controls(self):
         events = pg.event.get()
         for event in events:
@@ -136,10 +136,11 @@ class Game:
         for gravObj in self.grav:
             self.screen.blit(gravObj.imageCenter, (gravObj.x, gravObj.y))
             self.screen.blit(gravObj.imageSurround, (gravObj.x2, gravObj.y2))
-        self.screen.blit(self.player.top_piece.image1, (self.player.top_piece.x, self.player.top_piece.y))
-        self.screen.blit(self.player.mid_piece.image1, (self.player.mid_piece.x, self.player.mid_piece.y))
-        self.screen.blit(self.player.bot_piece.image1, (self.player.bot_piece.x, self.player.bot_piece.y))
+        self.screen.blit(self.player.top_piece.image, (self.player.top_piece.x, self.player.top_piece.y))
+        self.screen.blit(self.player.mid_piece.image, (self.player.mid_piece.x, self.player.mid_piece.y))
+        self.screen.blit(self.player.bot_piece.image, (self.player.bot_piece.x, self.player.bot_piece.y))
         self.fuelblit()
+        self.abilityCooldown()
         fps = basicFont.render(str(int(self.clock.get_fps())), True, pg.Color("green"))
         self.screen.blit(fps, (500, 0))
         highScoreBlit = basicFont.render(str(self.highScore), True, pg.Color("red"))
@@ -147,7 +148,7 @@ class Game:
         pg.display.update()
         self.screen.fill(pg.Color("black"))
         self.clock.tick(60)
-    
+
     def load_images(self):
         self.livesImg = pg.transform.scale(pg.image.load("image/lives.png"), (80, 80))
         self.asteroids1 = pg.transform.scale(pg.image.load("image/meteor.png"), (80, 80))
@@ -180,3 +181,25 @@ class Game:
             pg.draw.rect(self.screen, pg.Color("green"), [40, SCREEN_Y- 260, 48, 16], 0)
         if fuelratio > 0.9:
             pg.draw.rect(self.screen, pg.Color("green"), [40, SCREEN_Y- 280, 48, 16], 0)
+
+    def abilityCooldown(self):
+        if self.player.abilityTimer[0] > 0:
+            pg.draw.circle(
+                self.screen, pg.Color("yellow"),
+                (round(SCREEN_X / 3), SCREEN_Y - 150),
+                round(50 *
+                      (self.player.abilityDelay - self.player.abilityTimer[0])
+                      / self.player.abilityDelay))
+        else:
+            pg.draw.circle(self.screen, pg.Color("green"), (round(SCREEN_X/3), SCREEN_Y - 150), 50)
+
+        if self.player.abilityTimer2[0] > 0:
+            pg.draw.circle(
+                self.screen, pg.Color("yellow"),
+                (round(SCREEN_X / 3 * 2), SCREEN_Y - 150),
+                round(50 *
+                      (self.player.abilityDelay2 - self.player.abilityTimer2[0])
+                      / self.player.abilityDelay2))
+        else:
+            pg.draw.circle(self.screen, pg.Color("green"),
+                           (round(SCREEN_X / 3 * 2), SCREEN_Y - 150), 50)

@@ -11,15 +11,15 @@ class selectionScreen:
         self.listOfTop = ["image/rocket_top.png", "image/basicTop.png", "image/penTop.png"]
         self.listOfMid = ["image/rocket_mid.png", "image/basicMid.png", "image/penMid.png"]
         self.listOfBot = ["image/rocket_bot.png", "image/basicBot.png", "image/penBot.png"]
-        self.listOfAbilities = ["image/heart.png", "image/stopwatch.png"]
-        self.abilityNames = ["heal", "timeStop"]
+        self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/shrink.png", "image/transfusion.jpg"]
+        self.abilityNames = ["heal", "timeStop", "shrink", "transfusion"]
+        self.abilityTimers = [60, 600, 1200, 240]
         self.loadImages()
         self.genStats()
         self.loop()
 
     def loop(self):
         self.done = False
-        #0-4 final; 0-3 for now (without ability selection)
         self.cursorpos = 0
         self.arrowFlipX = SCREEN_X/2-120
         self.arrowX = SCREEN_X/2+60
@@ -102,7 +102,7 @@ class selectionScreen:
 
                 elif event.key == pg.K_SPACE and self.cursorpos == 5:
                     self.done = True
-    
+
     def blitImages(self):
         rect=(SCREEN_X/2-40, 80+(80*self.cursorpos-1) + (self.offset*self.cursorpos), 90, 90)
         pg.draw.rect(self.screen, pg.Color("grey"), rect)
@@ -173,7 +173,7 @@ class selectionScreen:
         for x in self.listOfAbilities:
             self.img = pg.transform.scale(pg.image.load(x), (80, 80))
             self.abilityImages.append(self.img)
-        
+
 
         self.arrow = pg.transform.scale(pg.image.load("image/arrow.png"), (64, 64))
         self.arrowFlip = pg.transform.rotate(self.arrow, 180)
@@ -214,6 +214,8 @@ class selectionScreen:
             storageList = [item]
             itemName = self.abilityNames[thingy]
             storageList.append(itemName)
+            itemName = self.abilityTimers[thingy]
+            storageList.append(itemName)
             thingy += 1
             self.abilities.append(storageList)
         thingy = 0
@@ -221,7 +223,7 @@ class selectionScreen:
             storageList = [item]
             itemName = self.abilityNames[thingy]
             storageList.append(itemName)
+            itemName = self.abilityTimers[thingy]
+            storageList.append(itemName)
             thingy += 1
             self.abilities2.append(storageList)
-            
-
