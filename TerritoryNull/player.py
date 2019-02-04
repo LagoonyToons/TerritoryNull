@@ -18,10 +18,10 @@ class Player():
         self.pieceList = [self.top_piece, self.mid_piece, self.bot_piece]
 
         self.ability = playerList[3][1]
-        self.abilityTimer = 0
+        self.abilityTimer = [0]
 
         self.ability2 = playerList[4][1]
-        self.abilityTimer2 = 0
+        self.abilityTimer2 = [0]
 
         # self.ability = "heal"
         # self.abilityTimer = 0
@@ -32,10 +32,10 @@ class Player():
         self.timeStopTimer = 0
 
     def update(self):
-        if self.abilityTimer > 0:
-            self.abilityTimer -= 1
-        if self.abilityTimer2 > 0:
-            self.abilityTimer2 -= 1
+        if self.abilityTimer[0] > 0:
+            self.abilityTimer[0] -= 1
+        if self.abilityTimer2[0] > 0:
+            self.abilityTimer2[0] -= 1
         return self.isDead()
 
     def isDead(self):
@@ -51,26 +51,26 @@ class Player():
 
     def heal(self, abilityTimer):
         if abilityTimer == self.abilityTimer:
-            if self.fuel >= 300 and self.abilityTimer <= 0:
+            if self.fuel >= 300 and self.abilityTimer[0] <= 0:
                 self.fuel -= 200
-                self.abilityTimer = 60
+                self.abilityTimer[0] = 60
                 self.hp += 1
         elif abilityTimer == self.abilityTimer2:
-            if self.fuel >= 300 and self.abilityTimer2 <= 0:
+            if self.fuel >= 300 and self.abilityTimer2[0] <= 0:
                 self.fuel -= 200
-                self.abilityTimer2 = 60
+                self.abilityTimer2[0] = 60
                 self.hp += 1
 
     def timeStop(self, abilityTimer):
         if abilityTimer == self.abilityTimer:
             if self.fuel >= 500 and abilityTimer <= 0:
                 self.fuel -= 500
-                abilityTimer = 600
+                abilityTimer[0] = 600
                 self.timeStopTimer = 120
         elif abilityTimer == self.abilityTimer2:
             if self.fuel >= 500 and self.abilityTimer2 <= 0:
                 self.fuel -= 500
-                self.abilityTimer2 = 600
+                self.abilityTimer2[0] = 600
                 self.timeStopTimer = 120
 
 

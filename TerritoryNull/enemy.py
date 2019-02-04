@@ -25,8 +25,8 @@ class Asteroid():
             enemies.remove(self)
 
 class Fuel():
-    def __init__(self, x, y):
-        self.image = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
+    def __init__(self, x, y, image):
+        self.image = image
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -45,8 +45,8 @@ class Fuel():
             enemies.remove(self)
 
 class Heal():
-    def __init__(self, x, y):
-        self.image = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
+    def __init__(self, x, y, image):
+        self.image = image
         self.x, self.y = (x, y)
         self.rect = self.image.get_rect()
         self.rect.x = self.x

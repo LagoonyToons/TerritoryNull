@@ -73,10 +73,10 @@ class Game:
                     gravObj = GravityField()
                     self.grav.add(gravObj)
             elif randomEnemyChoice <= 171:
-                enemy = Heal(x, 0)
+                enemy = Heal(x, 0, self.healImg)
                 self.enemies.append(enemy)
             else:
-                enemy = Fuel(x, 0)
+                enemy = Fuel(x, 0, self.fuelImg)
                 self.enemies.append(enemy)
             
     def controls(self):
@@ -155,6 +155,8 @@ class Game:
         self.asteroids3 = pg.transform.scale(pg.image.load("image/meteor.png"), (70, 70))
         self.asteroids4 = pg.transform.scale(pg.image.load("image/meteor.png"), (128, 128))
         self.asteroids5 = pg.transform.scale(pg.image.load("image/meteor.png"), (100, 100))
+        self.fuelImg = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
+        self.healImg = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
 
     def fuelblit(self):
         fuelratio = self.player.fuel/self.player.maxFuel
