@@ -19,6 +19,8 @@ class Player():
 
         self.ability = playerList[3][1]
         self.abilityTimer = [0]
+        self.abilityImage = playerList[3][0]
+        self.ability2Image = playerList[4][0]
         self.ability2 = playerList[4][1]
         self.abilityTimer2 = [0]
         self.timeStopTimer = 0
@@ -57,31 +59,31 @@ class Player():
             self.transfusion(abilityTimer)
 
     def heal(self, abilityTimer):
-        if abilityTimer == self.abilityTimer:
+        if abilityTimer == 1:
             if self.fuel >= 300 and self.abilityTimer[0] <= 0:
                 self.fuel -= 200
                 self.abilityTimer[0] = self.abilityDelay
                 self.hp += 1
-        elif abilityTimer == self.abilityTimer2:
+        elif abilityTimer == 2:
             if self.fuel >= 300 and self.abilityTimer2[0] <= 0:
                 self.fuel -= 200
                 self.abilityTimer2[0] = self.abilityDelay2
                 self.hp += 1
 
     def timeStop(self, abilityTimer):
-        if abilityTimer == self.abilityTimer:
+        if abilityTimer == 1:
             if self.fuel >= 500 and abilityTimer[0] <= 0:
                 self.fuel -= 500
                 self.abilityTimer[0] = self.abilityDelay
                 self.timeStopTimer = 120
-        elif abilityTimer == self.abilityTimer2:
+        elif abilityTimer == 2:
             if self.fuel >= 500 and self.abilityTimer2[0] <= 0:
                 self.fuel -= 500
                 self.abilityTimer2[0] = self.abilityDelay2
                 self.timeStopTimer = 120
 
     def shrink(self, abilityTimer):
-        if abilityTimer == self.abilityTimer:
+        if abilityTimer == 1:
             if abilityTimer[0] <= 0:
                 self.abilityTimer[0] = self.abilityDelay
                 self.shrinkTimer = 270
@@ -89,7 +91,7 @@ class Player():
                     x.image = x.imageHalf
                     x.rect = x.rectHalf
 
-        elif abilityTimer == self.abilityTimer2:
+        elif abilityTimer == 2:
             if self.abilityTimer2[0] <= 0:
                 self.abilityTimer2[0] = self.abilityDelay2
                 self.shrinkTimer = 270
@@ -98,12 +100,12 @@ class Player():
                     x.rect = x.rectHalf
 
     def transfusion(self, abilityTimer):
-        if abilityTimer == self.abilityTimer:
+        if abilityTimer == 1:
             if self.hp > 1 and abilityTimer[0] <= 0:
                 self.fuel += 500
                 self.abilityTimer[0] = self.abilityDelay
                 self.hp -= 1
-        elif abilityTimer == self.abilityTimer2:
+        elif abilityTimer == 2:
             if self.hp > 1 and self.abilityTimer2[0] <= 0:
                 self.fuel += 500
                 self.abilityTimer2[0] = self.abilityDelay2
