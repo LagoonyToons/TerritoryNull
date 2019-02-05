@@ -33,6 +33,8 @@ class Game:
 
     def gameloop(self):
         self.counter = 0
+        self.difficultyCount = 0
+        self.difficultyLevel = 0
         while not self.dead:
             self.music.songState()
             self.controls()
@@ -51,7 +53,11 @@ class Game:
 
     def enemySpawn(self):
         self.counter += 1
-        if self.counter >= 30:
+        self.difficultyCount += 1
+        if self.difficultyCount > 800 and self.difficultyLevel <= 17:
+            self.difficultyLevel += 1
+            self.difficultyCount = 0
+        if self.counter >= 30-self.difficultyLevel:
             self.counter = 0
             randomSize = random.randint(1, 5)
             x = random.randint(0, SCREEN_X-100)
