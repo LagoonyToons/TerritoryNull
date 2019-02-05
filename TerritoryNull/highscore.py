@@ -5,7 +5,7 @@ import sys
 
 class HighScoreMenu:
     def __init__(self, screen, music, score):
-        self.score = score
+        self.score = score[0]
         self.screen = screen
         self.music = music
         self.indexes = [1, 3, 5, 7, 9]

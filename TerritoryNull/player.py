@@ -27,7 +27,7 @@ class Player():
         self.shrinkTimer = 0
 
         self.abilityDelay = playerList[3][2]
-        self.abilityDelay2 = playerList[3][2]
+        self.abilityDelay2 = playerList[4][2]
 
     def update(self):
         if self.shrinkTimer > 0:
@@ -48,7 +48,7 @@ class Player():
             return True
         return False
 
-    def abilityStateMachine(self, ability, abilityTimer):
+    def abilityStateMachine(self, ability, abilityTimer, *args):
         if ability == "heal":
             self.heal(abilityTimer)
         elif ability == "timeStop":
@@ -57,6 +57,8 @@ class Player():
             self.shrink(abilityTimer)
         elif ability == "transfusion":
             self.transfusion(abilityTimer)
+        elif ability == "deathBoost":
+            self.deathBoost(abilityTimer, args[0])
 
     def heal(self, abilityTimer):
         if abilityTimer == 1:
@@ -110,6 +112,10 @@ class Player():
                 self.fuel += 500
                 self.abilityTimer2[0] = self.abilityDelay2
                 self.hp -= 1
+
+    def deathBoost(self, abilityTimer, score):
+        score[0] += 50000
+        self.hp -= self.hp
 
 
 

@@ -10,7 +10,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.player = Player(playerStats)
         self.screen = screen
-        self.highScore = 0
+        self.highScore = [0]
         self.music = music
 
         self.all_sprites = pg.sprite.Group()
@@ -44,10 +44,10 @@ class Game:
                     enemy.update(self.player, self.enemies)
                 for gravObj in self.grav:
                     gravObj.update(self.enemies, self.player)
-            self.highScore += 11
+            self.highScore[0] += 11
             self.dead = self.player.update()
             self.screenManagement()
-        return self.highScore
+        return self.highScore[0]
 
     def enemySpawn(self):
         self.counter += 1
@@ -88,9 +88,9 @@ class Game:
                 if event.key == pg.K_p:
                     self.music.switchSong()
                 if event.key == pg.K_SPACE:
-                    self.player.abilityStateMachine(self.player.ability, 1)
+                    self.player.abilityStateMachine(self.player.ability, 1, self.highScore)
                 if event.key == pg.K_e:
-                    self.player.abilityStateMachine(self.player.ability2, 2)
+                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore)
                 if event.key == pg.K_q:
                     self.music.volumeToggle()
         pressed = pg.key.get_pressed()
@@ -159,7 +159,7 @@ class Game:
         self.abilityCooldown()
         fps = basicFont.render(str(int(self.clock.get_fps())), True, pg.Color("green"))
         self.screen.blit(fps, (500, 0))
-        highScoreBlit = basicFont.render(str(self.highScore), True, pg.Color("red"))
+        highScoreBlit = basicFont.render(str(self.highScore[0]), True, pg.Color("red"))
         self.screen.blit(highScoreBlit, (50, 150))
         pg.display.update()
         self.screen.fill(pg.Color("black"))
