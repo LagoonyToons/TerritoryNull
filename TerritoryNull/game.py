@@ -129,6 +129,9 @@ class Game:
             #40, SCREEN_Y- 100
         fuelThingy = basicFont.render(str(self.fuelBlit), True, pg.Color("blue"))
         self.screen.blit(fuelThingy, (20, SCREEN_Y - 50))
+        songsLoaded = basicFont.render(
+            str(len(self.music.returnInitializedSongs())), True, pg.Color("blue"))
+        self.screen.blit(songsLoaded, (20, 100))
         for enemy in self.enemies:
             self.screen.blit(enemy.image, (enemy.x, enemy.y))
         if self.player.hp <= 9:
@@ -202,25 +205,25 @@ class Game:
         if self.player.abilityTimer[0] > 0:
             pg.draw.circle(
                 self.screen, pg.Color("yellow"),
-                (round(SCREEN_X / 3), SCREEN_Y - 150),
+                (round(SCREEN_X / 3), SCREEN_Y - 80),
                 round(30 *
                       (self.player.abilityDelay - self.player.abilityTimer[0])
                       / self.player.abilityDelay))
         else:
-            pg.draw.circle(self.screen, pg.Color("green"), (round(SCREEN_X/3), SCREEN_Y - 150), 30)
+            pg.draw.circle(self.screen, pg.Color("green"), (round(SCREEN_X/3), SCREEN_Y - 80), 30)
 
-        pg.draw.circle(self.screen, pg.Color("white"), (round(SCREEN_X/3), SCREEN_Y - 150), 30, 1)
+        pg.draw.circle(self.screen, pg.Color("white"), (round(SCREEN_X/3), SCREEN_Y - 80), 30, 1)
         #self.screen.blit(self.player.abilityImage, (SCREEN_X/3-30, SCREEN_Y-180))
 
         if self.player.abilityTimer2[0] > 0:
             pg.draw.circle(
                 self.screen, pg.Color("yellow"),
-                (round(SCREEN_X / 3 * 2), SCREEN_Y - 150),
+                (round(SCREEN_X / 3 * 2), SCREEN_Y - 80),
                 round(30 *
                       (self.player.abilityDelay2 - self.player.abilityTimer2[0])
                       / self.player.abilityDelay2))
         else:
             pg.draw.circle(self.screen, pg.Color("green"),
-                           (round(SCREEN_X / 3 * 2), SCREEN_Y - 150), 30)
+                           (round(SCREEN_X / 3 * 2), SCREEN_Y - 80), 30)
         pg.draw.circle(self.screen, pg.Color("white"),
-                       (round(SCREEN_X / 3 * 2), SCREEN_Y - 150), 30, 1)
+                       (round(SCREEN_X / 3 * 2), SCREEN_Y - 80), 30, 1)

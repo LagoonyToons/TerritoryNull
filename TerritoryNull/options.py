@@ -1,3 +1,5 @@
+import os.path
+import os
 import pygame as pg
 import threading
 import random
@@ -6,6 +8,7 @@ pg.font.init()
 basicFont = pg.font.SysFont('pressstart2pregular', 48)
 
 
+# simple version for working with CWD
 class songThread(threading.Thread):
     def __init__(self, threadID, name, songList):
         self.initializedSongs = []
@@ -16,9 +19,10 @@ class songThread(threading.Thread):
     def run(self):
         #beginning_time = time.time()
         for item in self.songList:
-            self.initialized_song = pg.mixer.Sound(item)
-            self.initializedSongs.append(self.initialized_song)
-        #     print("Song initialized, terminating process")
+            if ".ogg" in item:
+                self.initialized_song = pg.mixer.Sound(item)
+                self.initializedSongs.append(self.initialized_song)
+            #print("Song initialized, terminating process")
         # print("Loading Complete")
         # end_time = time.time()
         # completion_time = end_time - beginning_time
@@ -36,10 +40,15 @@ class songThread(threading.Thread):
              #'sounds/WagonWheel.ogg', 'sounds/zelda.ogg', 'sounds/bonetrousle.ogg', 'sounds/allstar.ogg']
 class Start:
     def __init__(self):
-        self.songList = ['sounds/OPM.ogg', "sounds/zelda.ogg", "sounds/jeez.ogg"]
+        self.songList = []
+        for item in os.listdir("sounds/"):
+            try:
+                self.songList.append("sounds/" + item)
+            except:
+                print(item + " Could not be loaded")
         self.thread1 = songThread(1, "Thread-1", self.songList)
         self.thread1.start()
-        self.volume = 0
+        self.volume = 1
 
         # self.currentsong = random.choice(self.thread1.initializedSongs)
         # self.currentsongI = self.thread1.initializedSongs.index(self.currentsong)
@@ -63,6 +72,9 @@ class Start:
         self.currentsong = random.choice(self.thread1.initializedSongs)
         self.currentsongI = self.thread1.initializedSongs.index(self.currentsong)
         pg.mixer.Channel(0).play(self.currentsong)
+
+    def returnInitializedSongs(self):
+        return self.thread1.initializedSongs
 
     # while True: # main game loop
     #     for event in pg.event.get():
