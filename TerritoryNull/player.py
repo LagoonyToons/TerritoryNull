@@ -29,18 +29,18 @@ class Player():
         self.abilityDelay = playerList[3][2]
         self.abilityDelay2 = playerList[4][2]
 
-    def update(self):
+    def update(self, speedMultiplier):
         if self.shrinkTimer > 0:
-            self.shrinkTimer -= 1
+            self.shrinkTimer -= 1*speedMultiplier
             if self.shrinkTimer <= 0:
                 for x in self.pieceList:
                     x.image = x.imageFull
                     x.rect = x.fullRect
                     x.offset[1] *= .5
         if self.abilityTimer[0] > 0:
-            self.abilityTimer[0] -= 1
+            self.abilityTimer[0] -= 1*speedMultiplier
         if self.abilityTimer2[0] > 0:
-            self.abilityTimer2[0] -= 1
+            self.abilityTimer2[0] -= 1*speedMultiplier
         return self.isDead()
 
     def isDead(self):

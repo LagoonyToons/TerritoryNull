@@ -12,12 +12,12 @@ class Asteroid():
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(3, 8)
-    def update(self, player, enemies):
+    def update(self, player, enemies, speedMultiplier):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
-            self.y += self.speed
-            self.rect.y +=  self.speed
+            self.y += self.speed*speedMultiplier
+            self.rect.y = self.y
            # print(piece.position)
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.hp -= 1
@@ -32,11 +32,12 @@ class Fuel():
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(3, 6)
-    def update(self, player, enemies):
+
+    def update(self, player, enemies, speedMultiplier):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
-            self.y += self.speed
+            self.y += self.speed*speedMultiplier
             self.rect.y = self.y
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.fuel += 500
@@ -52,11 +53,12 @@ class Heal():
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(4, 8)
-    def update(self, player, enemies):
+
+    def update(self, player, enemies, speedMultiplier):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
-            self.y += self.speed
+            self.y += self.speed*speedMultiplier
             self.rect.y = self.y
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.hp += 1
@@ -85,6 +87,7 @@ class GravityField(pg.sprite.Sprite):
 
         self.lifeCount = 0
         self.invulnerableFrames = 0
+
     def update(self, enemies, player):
         self.lifeCount += 1
         self.invulnerableFrames += 1

@@ -4,6 +4,7 @@ from player import *
 from enemy import *
 import random
 import sys
+import time
 
 class Game:
     def __init__(self, screen, music, playerStats):
@@ -29,6 +30,8 @@ class Game:
         self.loopCount = 0
         self.fuelBlit = self.player.fuel
 
+        self.time = time.time()
+
         self.gameloop()
 
     def gameloop(self):
@@ -36,28 +39,33 @@ class Game:
         self.difficultyCount = 0
         self.difficultyLevel = 0
         while not self.dead:
+            self.currentTime = time.time()
+            self.frameRate = round(1/(self.currentTime - self.time))
+            self.time = self.currentTime
+            self.speedMultiplier = 60/self.frameRate
+
             self.music.songState()
             self.controls()
             if self.player.timeStopTimer > 0:
-                self.player.timeStopTimer -= 1
+                self.player.timeStopTimer -= 1*self.speedMultiplier
             else:
                 self.enemySpawn()
                 for enemy in self.enemies:
-                    enemy.update(self.player, self.enemies)
+                    enemy.update(self.player, self.enemies, self.speedMultiplier)
                 for gravObj in self.grav:
                     gravObj.update(self.enemies, self.player)
-            self.highScore[0] += 11
-            self.dead = self.player.update()
+            self.highScore[0] += round(11*self.speedMultiplier)
+            self.dead = self.player.update(self.speedMultiplier)
             self.screenManagement()
         return self.highScore[0]
 
     def enemySpawn(self):
         self.counter += 1
         self.difficultyCount += 1
-        if self.difficultyCount > 800 and self.difficultyLevel <= 17:
+        if round(self.difficultyCount*self.speedMultiplier) > 800 and self.difficultyLevel <= 17:
             self.difficultyLevel += 1
             self.difficultyCount = 0
-        if self.counter >= 30-self.difficultyLevel:
+        if round(self.counter*self.speedMultiplier) >= 30-self.difficultyLevel:
             self.counter = 0
             randomSize = random.randint(1, 5)
             x = random.randint(0, SCREEN_X-100)
@@ -101,31 +109,31 @@ class Game:
                     self.music.volumeToggle()
         pressed = pg.key.get_pressed()
         if pressed[pg.K_LEFT] and self.player.fuel > 0:
-            self.player.mid_piece.update(-self.player.speed, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(-self.player.speed, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(-self.player.speed, 0)
-            self.player.fuel -= 2
+            self.player.mid_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.bot_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.top_piece.update(-self.player.speed*self.speedMultiplier, 0)
+            self.player.fuel -= round(2*self.speedMultiplier)
         elif pressed[pg.K_RIGHT] and self.player.fuel > 0:
-            self.player.mid_piece.update(self.player.speed, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(self.player.speed, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(self.player.speed, 0)
-            self.player.fuel -= 2
+            self.player.mid_piece.update(self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.bot_piece.update(self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.top_piece.update(self.player.speed*self.speedMultiplier, 0)
+            self.player.fuel -= round(2*self.speedMultiplier)
         else:
             self.player.mid_piece.update(0, 0, self.player.top_piece.x, self.player.top_piece.y)
             self.player.bot_piece.update(0, 0, self.player.top_piece.x, self.player.top_piece.y)
             self.player.top_piece.update(0, 0)
             if self.player.fuel > 0:
-                self.player.fuel -= 1
+                self.player.fuel -= round(1*self.speedMultiplier)
         if pressed[pg.K_UP] and self.player.fuel > 0:
-            self.player.mid_piece.update(0, -self.player.speed, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(0, -self.player.speed, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(0, -self.player.speed)
-            self.player.fuel -= 1
+            self.player.mid_piece.update(0, -self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.bot_piece.update(0, -self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.top_piece.update(0, -self.player.speed*self.speedMultiplier)
+            self.player.fuel -= round(1*self.speedMultiplier)
         elif pressed[pg.K_DOWN] and self.player.fuel > 0:
-            self.player.mid_piece.update(0, self.player.speed, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(0, self.player.speed, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(0, self.player.speed)
-            self.player.fuel -= 1
+            self.player.mid_piece.update(0, self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.bot_piece.update(0, self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+            self.player.top_piece.update(0, self.player.speed*self.speedMultiplier)
+            self.player.fuel -= round(1*self.speedMultiplier)
 
     def screenManagement(self):
         self.loopCount += 1
@@ -172,7 +180,7 @@ class Game:
         self.screen.blit(highScoreBlit, (50, 150))
         pg.display.update()
         self.screen.fill(pg.Color("black"))
-        self.clock.tick(60)
+        self.clock.tick(30)
 
     def load_images(self):
         self.livesImg = pg.transform.scale(pg.image.load("image/lives.png"), (80, 80))
