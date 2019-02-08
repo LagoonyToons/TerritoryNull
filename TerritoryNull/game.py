@@ -5,6 +5,7 @@ from enemy import *
 import random
 import sys
 import time
+import math
 
 class Game:
     def __init__(self, screen, music, playerStats):
@@ -180,7 +181,7 @@ class Game:
         self.screen.blit(highScoreBlit, (50, 150))
         pg.display.update()
         self.screen.fill(pg.Color("black"))
-        self.clock.tick(30)
+        self.clock.tick(60)
 
     def load_images(self):
         self.livesImg = pg.transform.scale(pg.image.load("image/lives.png"), (80, 80))
@@ -217,27 +218,34 @@ class Game:
 
     def abilityCooldown(self):
         if self.player.abilityTimer[0] > 0:
-            pg.draw.circle(
-                self.screen, pg.Color("yellow"),
-                (round(SCREEN_X / 3), SCREEN_Y - 80),
-                round(30 *
-                      (self.player.abilityDelay - self.player.abilityTimer[0])
-                      / self.player.abilityDelay))
+            pg.draw.arc(
+                self.screen, pg.Color("red"),
+                [round(SCREEN_X / 3), SCREEN_Y - 100, 80, 80], 0,
+                (math.pi * 2 *
+                 (self.player.abilityDelay - self.player.abilityTimer[0]) /
+                 self.player.abilityDelay), 5)
         else:
-            pg.draw.circle(self.screen, pg.Color("green"), (round(SCREEN_X/3), SCREEN_Y - 80), 30)
+            pg.draw.arc(
+                self.screen, pg.Color("green"),
+                [round(SCREEN_X / 3), SCREEN_Y - 100, 80, 80], 0,
+                (math.pi * 2 *
+                 (self.player.abilityDelay - self.player.abilityTimer[0]) /
+                 self.player.abilityDelay), 5)
 
-        pg.draw.circle(self.screen, pg.Color("white"), (round(SCREEN_X/3), SCREEN_Y - 80), 30, 1)
-        #self.screen.blit(self.player.abilityImage, (SCREEN_X/3-30, SCREEN_Y-180))
+    # pg.draw.circle(self.screen, pg.Color("white"), (round(SCREEN_X/3), SCREEN_Y - 80), 30, 1)
+    #self.screen.blit(self.player.abilityImage, (SCREEN_X/3-30, SCREEN_Y-180))
 
         if self.player.abilityTimer2[0] > 0:
-            pg.draw.circle(
-                self.screen, pg.Color("yellow"),
-                (round(SCREEN_X / 3 * 2), SCREEN_Y - 80),
-                round(30 *
-                      (self.player.abilityDelay2 - self.player.abilityTimer2[0])
-                      / self.player.abilityDelay2))
+            pg.draw.arc(
+                self.screen, pg.Color("red"),
+                [round(SCREEN_X / 3 * 2-80), SCREEN_Y - 100, 80, 80], 0,
+                (math.pi * 2 *
+                 (self.player.abilityDelay2 - self.player.abilityTimer2[0]) /
+                 self.player.abilityDelay2), 5)
         else:
-            pg.draw.circle(self.screen, pg.Color("green"),
-                           (round(SCREEN_X / 3 * 2), SCREEN_Y - 80), 30)
-        pg.draw.circle(self.screen, pg.Color("white"),
-                       (round(SCREEN_X / 3 * 2), SCREEN_Y - 80), 30, 1)
+            pg.draw.arc(
+                self.screen, pg.Color("green"),
+                [round(SCREEN_X / 3*2-80), SCREEN_Y - 100, 80, 80], 0,
+                (math.pi * 2 *
+                 (self.player.abilityDelay2 - self.player.abilityTimer2[0]) /
+                 self.player.abilityDelay2), 5)
