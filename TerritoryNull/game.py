@@ -19,6 +19,7 @@ class Game:
         self.player_pieces = pg.sprite.Group()
         self.enemies = []
         self.grav = pg.sprite.Group()
+        self.bulletList = []
 
         self.load_images()
 
@@ -52,7 +53,9 @@ class Game:
             else:
                 self.enemySpawn()
                 for enemy in self.enemies:
-                    enemy.update(self.player, self.enemies, self.speedMultiplier)
+                    enemy.update(self.player, self.enemies, self.speedMultiplier, self.bulletList)
+                for bullet in self.bulletList:
+                    bullet.update(self.player.top_piece, self.bulletList)
                 for gravObj in self.grav:
                     gravObj.update(self.enemies, self.player)
             self.highScore[0] += round(11*self.speedMultiplier)
@@ -103,9 +106,9 @@ class Game:
                 if event.key == pg.K_p:
                     self.music.switchSong()
                 if event.key == pg.K_SPACE:
-                    self.player.abilityStateMachine(self.player.ability, 1, self.highScore)
+                    self.player.abilityStateMachine(self.player.ability, 1, self.highScore, self.bulletList)
                 if event.key == pg.K_e:
-                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore)
+                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList)
                 if event.key == pg.K_q:
                     self.music.volumeToggle()
         pressed = pg.key.get_pressed()
@@ -149,6 +152,8 @@ class Game:
         self.screen.blit(songsLoaded, (20, 100))
         for enemy in self.enemies:
             self.screen.blit(enemy.image, (enemy.x, enemy.y))
+        for bullet in self.bulletList:
+            pg.draw.rect(self.screen, pg.Color("red"), bullet.rect)
         if self.player.hp <= 9:
             for x in range(0, self.player.hp):
                 self.screen.blit(self.livesImg, (100+(x*30), SCREEN_Y-80))

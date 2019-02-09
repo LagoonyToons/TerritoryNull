@@ -1,4 +1,3 @@
-
 import pygame as pg
 from options import *
 import random
@@ -12,17 +11,24 @@ class Asteroid():
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(3, 8)
-    def update(self, player, enemies, speedMultiplier):
+    def update(self, player, enemies, speedMultiplier, bulletList):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
             self.y += self.speed*speedMultiplier
             self.rect.y = self.y
-           # print(piece.position)
+        # print(piece.position)
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.hp -= 1
             print(player.hp)
             enemies.remove(self)
+        for bullet in bulletList:
+            if self.rect.colliderect(bullet.rect):
+                try:
+                    enemies.remove(self)
+                except:
+                    pass
+
 
 class Fuel():
     def __init__(self, x, y, image):
@@ -33,7 +39,7 @@ class Fuel():
         self.rect.y = self.y
         self.speed = random.randint(3, 6)
 
-    def update(self, player, enemies, speedMultiplier):
+    def update(self, player, enemies, speedMultiplier, bulletList):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
@@ -54,7 +60,7 @@ class Heal():
         self.rect.y = self.y
         self.speed = random.randint(4, 8)
 
-    def update(self, player, enemies, speedMultiplier):
+    def update(self, player, enemies, speedMultiplier, bulletList):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:

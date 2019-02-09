@@ -59,6 +59,8 @@ class Player():
             self.transfusion(abilityTimer)
         elif ability == "deathBoost":
             self.deathBoost(abilityTimer, args[0])
+        elif ability == "laserFire":
+            self.laserFire(abilityTimer, args[1])
 
     def heal(self, abilityTimer):
         if abilityTimer == 1:
@@ -86,12 +88,16 @@ class Player():
 
     def shrink(self, abilityTimer):
         if abilityTimer == 1:
-            if abilityTimer[0] <= 0:
+            if self.abilityTimer[0] <= 0:
                 self.abilityTimer[0] = self.abilityDelay
                 self.shrinkTimer = 270
                 for x in self.pieceList:
                     x.image = x.imageHalf
                     x.rect = x.rectHalf
+                    if x.position == 1:
+                        x.y -= 24
+                    elif x.position == 2:
+                        x.y -= 48
 
         elif abilityTimer == 2:
             if self.abilityTimer2[0] <= 0:
@@ -100,10 +106,14 @@ class Player():
                 for x in self.pieceList:
                     x.image = x.imageHalf
                     x.rect = x.rectHalf
+                    if x.position == 1:
+                        x.y -= 24
+                    elif x.position == 2:
+                        x.y -= 48
 
     def transfusion(self, abilityTimer):
         if abilityTimer == 1:
-            if self.hp > 1 and abilityTimer[0] <= 0:
+            if self.hp > 1 and self.abilityTimer[0] <= 0:
                 self.fuel += 500
                 self.abilityTimer[0] = self.abilityDelay
                 self.hp -= 1
@@ -116,6 +126,17 @@ class Player():
     def deathBoost(self, abilityTimer, score):
         score[0] += 50000
         self.hp -= self.hp
+
+    def laserFire(self, abilityTimer, bulletList):
+        if abilityTimer == 1:
+            if self.fuel >= 200 and self.abilityTimer[0] <= 0:
+                bulletList.append(Laser(self.top_piece.x, self.top_piece.y))
+                self.abilityTimer[0] = self.abilityDelay
+        elif abilityTimer == 2:
+            if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
+                bulletList.append(Laser(self.top_piece.x, self.top_piece.y))
+                self.abilityTimer2[0] = self.abilityDelay2
+
 
 
 
@@ -177,3 +198,26 @@ class rocketPiece(pg.sprite.Sprite):
             self.y -= y
             self.rect.y = self.y
         #self.image1 = pg.transform.rotate(self.image, self.rotation)
+
+class Laser:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.y_size = 0
+        self.x_size = 5
+        self.count = 80
+        self.rect = pg.Rect(self.x - self.x_size / 2 + 24,
+                                   0, self.x_size, self.y)
+
+    def update(self, player, bulletList):
+        self.x = player.x
+        self.y = player.y
+        #self.x_size += 4
+        self.count -= 1
+        self.rect = pg.Rect(self.x-self.x_size/2 + 24, 0, self.x_size, self.y)
+        if self.count <= 0:
+            bulletList.remove(self)
+        # for enemy in enemies:
+        #     if self.rect.colliderect(enemy.rect):
+        #         enemies.remove(enemy)
+        #         print("hello world")

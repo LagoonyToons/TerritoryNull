@@ -11,10 +11,10 @@ class selectionScreen:
         self.listOfTop = ["image/rocket_top.png", "image/basicTop.png", "image/penTop.png"]
         self.listOfMid = ["image/rocket_mid.png", "image/basicMid.png", "image/penMid.png"]
         self.listOfBot = ["image/rocket_bot.png", "image/basicBot.png", "image/penBot.png"]
-        self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/shrink.png", "image/transfusion.jpg", "image/explosion.png"]
+        self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/shrink.png", "image/transfusion.jpg", "image/explosion.png", "image/laser.png"]
         self.abilityNames = ["heal", "timeStop",
-                             "shrink", "transfusion", "deathBoost"]
-        self.abilityTimers = [60, 600, 1200, 240, 0]
+                             "shrink", "transfusion", "deathBoost", "laserFire"]
+        self.abilityTimers = [60, 600, 1200, 240, 0, 200]
         self.loadImages()
         self.genStats()
         self.loop()
