@@ -158,7 +158,7 @@ class Game:
         for enemy in self.enemies:
             self.screen.blit(enemy.image, (enemy.x, enemy.y))
         for bullet in self.bulletList:
-            pg.draw.rect(self.screen, pg.Color("red"), bullet.rect)
+            bullet.draw(self.screen)
         if self.player.hp <= 9:
             for x in range(0, self.player.hp):
                 self.screen.blit(self.livesImg, (100+(x*30), SCREEN_Y-80))

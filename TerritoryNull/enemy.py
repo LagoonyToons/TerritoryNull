@@ -24,10 +24,20 @@ class Asteroid():
             enemies.remove(self)
         for bullet in bulletList:
             if self.rect.colliderect(bullet.rect):
-                try:
-                    enemies.remove(self)
-                except:
-                    pass
+                if bullet.name == "laser":
+                    try:
+                        enemies.remove(self)
+                    except:
+                        pass
+                else:
+                    try:
+                        enemies.remove(self)
+                    except:
+                        pass
+                    try:
+                        bulletList.remove(bullet)
+                    except:
+                        pass
 
 
 class Fuel():

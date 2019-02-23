@@ -11,10 +11,15 @@ class selectionScreen:
         self.listOfTop = ["image/rocket_top.png", "image/basicTop.png", "image/penTop.png"]
         self.listOfMid = ["image/rocket_mid.png", "image/basicMid.png", "image/penMid.png"]
         self.listOfBot = ["image/rocket_bot.png", "image/basicBot.png", "image/penBot.png"]
-        self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/shrink.png", "image/transfusion.jpg", "image/explosion.png", "image/laser.png"]
-        self.abilityNames = ["heal", "timeStop",
-                             "shrink", "transfusion", "deathBoost", "laserFire"]
-        self.abilityTimers = [60, 600, 1200, 240, 0, 200]
+
+        self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/shrink.png", "image/transfusion.jpg", "image/explosion.png"]
+        self.abilityNames = ["heal", "timeStop", "shrink", "transfusion", "deathBoost"]
+        self.abilityTimers = [60, 600, 1200, 240, 0]
+
+        self.listOfBullets = ["image/laser.png", "image/bullet.png"]
+        self.bulletNames = ["laserFire", "bullet"]
+        self.bulletTimers = [200, 25]
+
         self.loadImages()
         self.genStats()
         self.loop()
@@ -25,7 +30,7 @@ class selectionScreen:
         self.arrowFlipX = SCREEN_X/2-120
         self.arrowX = SCREEN_X/2+60
         self.offset = 30
-        self.finalList = [self.tops[0], self.mids[0], self.bots[0], self.abilities[0], self.abilities2[0]]
+        self.finalList = [self.tops[0], self.mids[0], self.bots[0], self.abilities[0], self.bullets[0]]
         self.place = [0,0,0,0,0]
         while not self.done:
             self.controls()
@@ -61,8 +66,9 @@ class selectionScreen:
                     elif self.cursorpos == 4:
                         self.place[self.cursorpos] -= 1
                         if self.place[self.cursorpos] < 0:
-                            self.place[self.cursorpos] = len(self.listOfAbilities)-1
-                        self.finalList[self.cursorpos] = self.abilities2[self.place[self.cursorpos]]
+                            self.place[self.cursorpos] = len(
+                                self.listOfBullets) - 1
+                        self.finalList[self.cursorpos] = self.bullets[self.place[self.cursorpos]]
 
                 elif event.key == pg.K_RIGHT:
                     if self.cursorpos == 0:
@@ -87,9 +93,9 @@ class selectionScreen:
                         self.finalList[self.cursorpos] = self.abilities[self.place[self.cursorpos]]
                     elif self.cursorpos == 4:
                         self.place[self.cursorpos] += 1
-                        if self.place[self.cursorpos] > len(self.listOfAbilities)-1:
+                        if self.place[self.cursorpos] > len(self.listOfBullets)-1:
                             self.place[self.cursorpos] = 0
-                        self.finalList[self.cursorpos] = self.abilities2[self.place[self.cursorpos]]
+                        self.finalList[self.cursorpos] = self.bullets[self.place[self.cursorpos]]
 
                 elif event.key == pg.K_UP:
                     self.cursorpos -= 1
@@ -161,6 +167,7 @@ class selectionScreen:
         self.midImages = []
         self.botImages = []
         self.abilityImages = []
+        self.bulletImages = []
         for x in self.listOfTop:
             self.img = pg.transform.scale(pg.image.load(x), (80, 80))
             self.topImages.append(self.img)
@@ -174,6 +181,9 @@ class selectionScreen:
         for x in self.listOfAbilities:
             self.img = pg.transform.scale(pg.image.load(x), (80, 80))
             self.abilityImages.append(self.img)
+        for x in self.listOfBullets:
+            self.img = pg.transform.scale(pg.image.load(x), (80, 80))
+            self.bulletImages.append(self.img)
 
 
         self.arrow = pg.transform.scale(pg.image.load("image/arrow.png"), (64, 64))
@@ -185,7 +195,7 @@ class selectionScreen:
         self.bots = []
         self.mids = []
         self.abilities = []
-        self.abilities2 = []
+        self.bullets = []
         #print(len(self.loadedImages[0]))
         for item in self.topImages:
             #print(len(self.topImages))
@@ -220,11 +230,11 @@ class selectionScreen:
             thingy += 1
             self.abilities.append(storageList)
         thingy = 0
-        for item in self.abilityImages:
+        for item in self.bulletImages:
             storageList = [item]
-            itemName = self.abilityNames[thingy]
+            itemName = self.bulletNames[thingy]
             storageList.append(itemName)
-            itemName = self.abilityTimers[thingy]
+            itemName = self.bulletTimers[thingy]
             storageList.append(itemName)
             thingy += 1
-            self.abilities2.append(storageList)
+            self.bullets.append(storageList)

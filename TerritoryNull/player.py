@@ -20,7 +20,7 @@ class Player():
         self.ability = playerList[3][1]
         self.abilityTimer = [0]
         self.abilityImage = playerList[3][0]
-        self.ability2Image = playerList[4][0]
+        self.ability2Image = pg.transform.scale(playerList[4][0], (20, 20))
         self.ability2 = playerList[4][1]
         self.abilityTimer2 = [0]
         self.timeStopTimer = 0
@@ -61,6 +61,8 @@ class Player():
             self.deathBoost(abilityTimer, args[0])
         elif ability == "laserFire":
             self.laserFire(abilityTimer, args[1])
+        elif ability == "bullet":
+            self.bulletFire(abilityTimer, args[1])
 
     def heal(self, abilityTimer):
         if abilityTimer == 1:
@@ -130,13 +132,22 @@ class Player():
     def laserFire(self, abilityTimer, bulletList):
         if abilityTimer == 1:
             if self.fuel >= 200 and self.abilityTimer[0] <= 0:
-                bulletList.append(Laser(self.top_piece.x, self.top_piece.y))
+                bulletList.append(
+                    Laser(self.ability2Image, self.top_piece.x,
+                          self.top_piece.y))
                 self.abilityTimer[0] = self.abilityDelay
         elif abilityTimer == 2:
             if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
-                bulletList.append(Laser(self.top_piece.x, self.top_piece.y))
+                bulletList.append(
+                    Laser(self.ability2Image, self.top_piece.x,
+                          self.top_piece.y))
                 self.abilityTimer2[0] = self.abilityDelay2
 
+    def bulletFire(self, abilityTimer, bulletList):
+        if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
+            bulletList.append(
+                Bullet(self.ability2Image, self.top_piece.x, self.top_piece.y))
+            self.abilityTimer2[0] = self.abilityDelay2
 
 
 
@@ -200,7 +211,8 @@ class rocketPiece(pg.sprite.Sprite):
         #self.image1 = pg.transform.rotate(self.image, self.rotation)
 
 class Laser:
-    def __init__(self, x, y):
+    def __init__(self, image, x, y):
+        self.name = "laser"
         self.x = x
         self.y = y
         self.y_size = 0
@@ -221,3 +233,26 @@ class Laser:
         #     if self.rect.colliderect(enemy.rect):
         #         enemies.remove(enemy)
         #         print("hello world")
+
+    def draw(self, screen):
+        pg.draw.rect(self.screen, pg.Color("red"), self.rect)
+
+
+class Bullet:
+    def __init__(self,image, x, y):
+        self.name = "bullet"
+        self.image = image
+        self.x = x
+        self.y = y
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, player, bulletList):
+        # self.x = player.x
+        self.y -= 5
+        self.rect.y = self.y
+        if self.rect.y <= -30:
+            bulletList.remove(self)
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
