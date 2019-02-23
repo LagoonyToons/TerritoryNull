@@ -22,6 +22,7 @@ class Game:
         self.bulletList = []
 
         self.load_images()
+        self.genStars()
 
         self.dead = False
 
@@ -42,7 +43,10 @@ class Game:
         self.difficultyLevel = 0
         while not self.dead:
             self.currentTime = time.time()
-            self.frameRate = round(1/(self.currentTime - self.time))
+            try:
+                self.frameRate = round(1/(self.currentTime - self.time))
+            except:
+                self.frameRate = 60
             self.time = self.currentTime
             self.speedMultiplier = 60/self.frameRate
 
@@ -140,6 +144,7 @@ class Game:
             self.player.fuel -= round(1*self.speedMultiplier)
 
     def screenManagement(self):
+        self.starBlit()
         self.loopCount += 1
         if self.loopCount >= 30:
             self.fuelBlit = self.player.fuel
@@ -254,3 +259,47 @@ class Game:
                 (math.pi * 2 *
                  (self.player.abilityDelay2 - self.player.abilityTimer2[0]) /
                  self.player.abilityDelay2), 5)
+    def starBlit(self):
+        for star in self.screen_1_rects:
+            pg.draw.circle(self.screen, pg.Color("snow"), (star[0], round(star[1])), star[2])
+            #print(star[0][1])
+            star[1] += .5*self.speedMultiplier
+            if star[1] >= SCREEN_Y:
+                star[1] = 0
+        for star in self.screen_2_rects:
+            pg.draw.circle(self.screen, pg.Color("snow"), (star[0], round(star[1])), star[2])
+            star[1] += .8*self.speedMultiplier
+            if star[1] >= SCREEN_Y:
+                star[1] = 0
+        for star in self.screen_3_rects:
+            pg.draw.circle(self.screen, pg.Color("snow"), (star[0], round(star[1])), star[2])
+            star[1] += 1.3*self.speedMultiplier
+            if star[1] >= SCREEN_Y:
+                star[1] = 0
+        #print(len(self.screen_1_rects))
+    def genStars(self):
+        self.screen_1_rects = []
+        self.screen_2_rects = []
+        self.screen_3_rects = []
+        for x in range(40):
+            holder = []
+            holder.append(random.randint(0,SCREEN_X))
+            holder.append(random.randint(0,SCREEN_Y))
+            holder.append(random.choice([1,1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5,]))
+            #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
+            self.screen_1_rects.append(holder)
+        for x in range(40):
+            holder = []
+            holder.append(random.randint(0,SCREEN_X))
+            holder.append(random.randint(0,SCREEN_Y))
+            holder.append(random.choice([1,1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5,  6, 7]))
+            #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
+            self.screen_2_rects.append(holder)
+        for x in range(40):
+            holder = []
+            holder.append(random.randint(0,SCREEN_X))
+            holder.append(random.randint(0,SCREEN_Y))
+            holder.append(random.choice([1,1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5,  6, 7]))
+            #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
+            self.screen_3_rects.append(holder)
+            
