@@ -14,7 +14,7 @@ class selectionScreen:
 
         self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/shrink.png", "image/transfusion.jpg", "image/explosion.png"]
         self.abilityNames = ["heal", "timeStop", "shrink", "transfusion", "deathBoost"]
-        self.abilityTimers = [60, 600, 1200, 240, 0]
+        self.abilityTimers = [420, 600, 1200, 240, 1]
 
         self.listOfBullets = ["image/laser.png", "image/bullet.png"]
         self.bulletNames = ["laserFire", "bullet"]

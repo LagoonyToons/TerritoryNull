@@ -3,7 +3,7 @@ import sys
 from options import *
 from menu import *
 pg.init()
-pg.mixer.init()
+pg.mixer.init(channels=5)
 
 #defined in options
 #SCREEN_X, SCREEN_Y = (1200, 700)

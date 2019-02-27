@@ -10,7 +10,9 @@ import math
 class Game:
     def __init__(self, screen, music, playerStats):
         self.clock = pg.time.Clock()
-        self.player = Player(playerStats)
+        self.load_images()
+        self.load_sounds()
+        self.player = Player(playerStats, self.soundEffects)
         self.screen = screen
         self.highScore = [0]
         self.music = music
@@ -21,7 +23,6 @@ class Game:
         self.grav = pg.sprite.Group()
         self.bulletList = []
 
-        self.load_images()
         self.genStars()
 
         self.dead = False
@@ -57,9 +58,9 @@ class Game:
             else:
                 self.enemySpawn()
                 for enemy in self.enemies:
-                    enemy.update(self.player, self.enemies, self.speedMultiplier, self.bulletList)
+                    enemy.update(self.player, self.enemies, self.speedMultiplier, self.bulletList, self.highScore)
                 for bullet in self.bulletList:
-                    bullet.update(self.player.top_piece, self.bulletList)
+                    bullet.update(self.player.top_piece, self.bulletList, self.speedMultiplier)
                 for gravObj in self.grav:
                     gravObj.update(self.enemies, self.player)
             self.highScore[0] += round(11*self.speedMultiplier)
@@ -203,6 +204,11 @@ class Game:
         self.fuelImg = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
         self.healImg = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
 
+    def load_sounds(self):
+        self.soundEffects = []
+        self.zaWarudo = pg.mixer.Sound("soundEffects/ZAWARUDO.ogg")
+        self.soundEffects.append(self.zaWarudo)
+
     def fuelblit(self):
         fuelratio = self.player.fuel/self.player.maxFuel
         if fuelratio > 0:
@@ -302,4 +308,3 @@ class Game:
             holder.append(random.choice([1,1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5,  6, 7]))
             #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
             self.screen_3_rects.append(holder)
-            

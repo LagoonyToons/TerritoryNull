@@ -11,7 +11,7 @@ class Asteroid():
         self.rect.x = self.x
         self.rect.y = self.y
         self.speed = random.randint(3, 8)
-    def update(self, player, enemies, speedMultiplier, bulletList):
+    def update(self, player, enemies, speedMultiplier, bulletList, score):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
@@ -38,6 +38,7 @@ class Asteroid():
                         bulletList.remove(bullet)
                     except:
                         pass
+                score[0] += 500
 
 
 class Fuel():
@@ -49,7 +50,7 @@ class Fuel():
         self.rect.y = self.y
         self.speed = random.randint(3, 6)
 
-    def update(self, player, enemies, speedMultiplier, bulletList):
+    def update(self, player, enemies, speedMultiplier, bulletList, score):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:
@@ -70,7 +71,7 @@ class Heal():
         self.rect.y = self.y
         self.speed = random.randint(4, 8)
 
-    def update(self, player, enemies, speedMultiplier, bulletList):
+    def update(self, player, enemies, speedMultiplier, bulletList, score):
         if self.y >= SCREEN_Y:
             enemies.remove(self)
         else:

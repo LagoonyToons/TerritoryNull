@@ -3,7 +3,7 @@ from options import *
 import sys
 
 class Player():
-    def __init__(self, playerList):
+    def __init__(self, playerList, soundEffects):
         self.hp = playerList[0][0] + playerList[1][0] + playerList[2][0]
         self.speed = playerList[0][2] + playerList[1][2] + playerList[2][2]
         self.maxFuel = self.fuel = playerList[0][1] + playerList[1][1] + playerList[2][1]
@@ -28,6 +28,8 @@ class Player():
 
         self.abilityDelay = playerList[3][2]
         self.abilityDelay2 = playerList[4][2]
+
+        self.soundEffects = soundEffects
 
     def update(self, speedMultiplier):
         if self.shrinkTimer > 0:
@@ -82,6 +84,7 @@ class Player():
                 self.fuel -= 500
                 self.abilityTimer[0] = self.abilityDelay
                 self.timeStopTimer = 120
+                pg.mixer.Channel(5).play(self.soundEffects[0])
         elif abilityTimer == 2:
             if self.fuel >= 500 and self.abilityTimer2[0] <= 0:
                 self.fuel -= 500
@@ -221,11 +224,11 @@ class Laser:
         self.rect = pg.Rect(self.x - self.x_size / 2 + 24,
                                    0, self.x_size, self.y)
 
-    def update(self, player, bulletList):
+    def update(self, player, bulletList, multiplier):
         self.x = player.x
         self.y = player.y
         #self.x_size += 4
-        self.count -= 1
+        self.count -= 1*multiplier
         self.rect = pg.Rect(self.x-self.x_size/2 + 24, 0, self.x_size, self.y)
         if self.count <= 0:
             bulletList.remove(self)
@@ -235,7 +238,7 @@ class Laser:
         #         print("hello world")
 
     def draw(self, screen):
-        pg.draw.rect(self.screen, pg.Color("red"), self.rect)
+        pg.draw.rect(screen, pg.Color("red"), self.rect)
 
 
 class Bullet:
@@ -248,9 +251,9 @@ class Bullet:
         self.rect.x = x
         self.rect.y = y
 
-    def update(self, player, bulletList):
+    def update(self, player, bulletList, multiplier):
         # self.x = player.x
-        self.y -= 5
+        self.y -= round(5*multiplier)
         self.rect.y = self.y
         if self.rect.y <= -30:
             bulletList.remove(self)
