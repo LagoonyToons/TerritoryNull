@@ -95,9 +95,20 @@ class Game:
                 if len(self.grav) == 0:
                     gravObj = GravityField()
                     self.grav.add(gravObj)
-            elif randomEnemyChoice <= 171:
+            elif randomEnemyChoice <= 172:
                 enemy = Heal(x, 0, self.healImg)
                 self.enemies.append(enemy)
+            elif randomEnemyChoice <= 173:
+                bossExists = False
+                for enemy in self.enemies:
+                    if enemy.type == "boss":
+                        bossExists = True
+                        randomEnemyChoice = random.randint(0, 200)
+                        break
+                if not bossExists:
+                    boss = Boss(500, -200, (pg.transform.scale(
+                        pg.image.load("image/meteor.png"), (200, 200))), 10)
+                    self.enemies.append(boss)
             else:
                 enemy = Fuel(x, 0, self.fuelImg)
                 self.enemies.append(enemy)
@@ -113,7 +124,7 @@ class Game:
                 if event.key == pg.K_SPACE:
                     self.player.abilityStateMachine(self.player.ability, 1, self.highScore, self.bulletList)
                 if event.key == pg.K_e:
-                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList)
+                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies)
                 if event.key == pg.K_q:
                     self.music.volumeToggle()
         pressed = pg.key.get_pressed()
@@ -157,7 +168,7 @@ class Game:
             str(len(self.music.returnInitializedSongs())), True, pg.Color("blue"))
         self.screen.blit(songsLoaded, (20, 100))
         for enemy in self.enemies:
-            self.screen.blit(enemy.image, (enemy.x, enemy.y))
+                enemy.draw(self.screen)
         for bullet in self.bulletList:
             bullet.draw(self.screen)
         if self.player.hp <= 9:

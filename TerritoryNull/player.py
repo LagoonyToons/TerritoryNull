@@ -63,8 +63,12 @@ class Player():
             self.deathBoost(abilityTimer, args[0])
         elif ability == "laserFire":
             self.laserFire(abilityTimer, args[1])
+        elif ability == "explosion":
+            self.explodeFire(abilityTimer, args[1])
         elif ability == "bullet":
             self.bulletFire(abilityTimer, args[1])
+        elif ability == "tracker":
+            self.trackerFire(abilityTimer, args[1], args[2])
 
     def heal(self, abilityTimer):
         if abilityTimer == 1:
@@ -145,11 +149,24 @@ class Player():
                     Laser(self.ability2Image, self.top_piece.x,
                           self.top_piece.y))
                 self.abilityTimer2[0] = self.abilityDelay2
-
+    def explodeFire(self, abilityTimer, bulletList):
+        if abilityTimer == 2:
+            if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
+                bulletList.append(
+                    Explode(self.ability2Image, self.top_piece.x,
+                          self.top_piece.y))
+                self.fuel -= 100
+                self.abilityTimer2[0] = self.abilityDelay2
     def bulletFire(self, abilityTimer, bulletList):
-        if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
+        if self.abilityTimer2[0] <= 0:
             bulletList.append(
                 Bullet(self.ability2Image, self.top_piece.x, self.top_piece.y))
+            self.abilityTimer2[0] = self.abilityDelay2
+
+    def trackerFire(self, abilityTimer, bulletList, enemyList):
+        if self.abilityTimer2[0] <= 0:
+            bulletList.append(
+                Tracker(self.ability2Image, self.top_piece.x, self.top_piece.y, enemyList))
             self.abilityTimer2[0] = self.abilityDelay2
 
 
@@ -241,6 +258,39 @@ class Laser:
         pg.draw.rect(screen, pg.Color("red"), self.rect)
 
 
+class Explode:
+    def __init__(self, image, x, y):
+        self.name = "laser"
+        self.x = x
+        self.y = y
+        self.y_size = 0
+        self.x_size = 5
+        self.count = 120
+        self.rect = pg.Rect(self.x+15, self.y-35, self.x_size,
+                            self.y+80)
+
+    def update(self, player, bulletList, multiplier):
+        self.x = player.x+24
+        self.y = player.y+60
+        if self.x_size < 120:
+            self.x_size += 8*multiplier
+        #self.x_size += 4
+        self.count -= 1 * multiplier
+        self.rect = pg.Rect(self.x-self.x_size, self.y-self.x_size, self.x_size*2, self.x_size*2)
+        if self.count <= 0:
+            bulletList.remove(self)
+        # for enemy in enemies:
+        #     if self.rect.colliderect(enemy.rect):
+        #         enemies.remove(enemy)
+        #         print("hello world")
+
+    def draw(self, screen):
+        #pg.draw.rect(screen, pg.Color("blue"), self.rect)
+        pg.draw.circle(screen, pg.Color("red"), (round(self.x), round(self.y)), round(self.x_size), 5)
+        pg.draw.circle(screen, pg.Color("lightBlue"), (round(self.x), round(self.y)), round(self.x_size-2))
+
+
+
 class Bullet:
     def __init__(self,image, x, y):
         self.name = "bullet"
@@ -257,5 +307,94 @@ class Bullet:
         self.rect.y = self.y
         if self.rect.y <= -30:
             bulletList.remove(self)
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+
+
+class Tracker:
+    def __init__(self, image, x, y, enemyList):
+        self.name = "bullet"
+        self.image = image
+        self.x = x
+        self.y = y
+        #print(x, y)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speed = 20
+        self.target = [0,0]
+        self.currentLowest = 9999
+        for enemy in enemyList:
+            self.xDifference = abs(enemy.coordinates[0]-self.x)
+            self.yDifference = abs(enemy.coordinates[1] - self.y)
+            self.totalDifference = self.xDifference+self.yDifference
+            if self.totalDifference < self.currentLowest:
+                self.currentLowest = self.totalDifference
+                self.target = enemy.coordinates
+        self.lifeTime = 180
+
+    def update(self, player, bulletList, multiplier):
+        self.lifeTime -= 1
+        if self.target:
+            self.xDifference = self.x - self.target[0]
+            self.yDifference = self.y - self.target[1]
+            self.ratio = self.speed/(abs(self.xDifference) + abs(self.yDifference))
+            self.xSpeed = round(self.xDifference*self.ratio)
+            self.ySpeed = round(self.yDifference * self.ratio)
+            #print(self.xSpeed, self.ySpeed)
+            print(self.target)
+            # self.x = player.x
+            self.y -= round(self.ySpeed*multiplier)
+            self.rect.y = self.y
+            self.x -= round(self.xSpeed * multiplier)
+            self.rect.x = self.x
+        if self.y <= 0 or self.y > SCREEN_Y or self.x <= 0 or self.x > SCREEN_X or self.lifeTime < 0:
+            bulletList.remove(self)
+
+    def draw(self, screen):
+        #try:
+        screen.blit(self.image, (round(self.x), round(self.y)))
+    #except:
+    #print(self.x, self.y)
+
+
+class Shotgun:
+    def __init__(self, image, x, y):
+        self.name = "bullet"
+        self.image = image
+        self.x = x
+        self.y = y
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, player, bulletList, multiplier):
+        # self.x = player.x
+        self.y -= round(5 * multiplier)
+        self.rect.y = self.y
+        if self.rect.y <= -30:
+            bulletList.remove(self)
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+
+
+class Mine:
+    def __init__(self, image, x, y):
+        self.name = "mine"
+        self.image = image
+        self.x = x
+        self.y = y
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, player, bulletList, multiplier):
+        # self.x = player.x
+        self.y -= round(5 * multiplier)
+        self.rect.y = self.y
+        if self.rect.y <= -30:
+            bulletList.remove(self)
+
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))

@@ -9,6 +9,7 @@ class HighScoreMenu:
         self.screen = screen
         self.music = music
         self.indexes = [1, 3, 5, 7, 9]
+        self.genStars()
 
         try:
             with open("High_Scores.txt", "rb") as f:
@@ -20,7 +21,7 @@ class HighScoreMenu:
         self.modifyHighscores()
         self.loop()
 
-        
+
 
     def loop(self):
         while True:
@@ -32,7 +33,7 @@ class HighScoreMenu:
                     sys.exit()
                 if event.type == pg.KEYDOWN:
                     return
-            
+            self.starBlit()
             text = basicFont.render(str(self.highscores[0]) + " : " + str(self.highscores[1]), True, pg.Color("royalblue"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*2/8))
             text = basicFont.render(str(self.highscores[2]) + " : " + str(self.highscores[3]), True, pg.Color("green"))
@@ -115,7 +116,7 @@ class HighScoreMenu:
                         self.numpos4 -= 1
                         if self.numpos4 < 0:
                             self.numpos4 = 35
-                                #name[cursorpos] -= 1
+                            #name[cursorpos] -= 1
                 if event.key == pg.K_UP:
                     if self.cursorpos == 0:
                         self.numpos1 += 1
@@ -144,3 +145,68 @@ class HighScoreMenu:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
+
+    def starBlit(self):
+        for star in self.screen_1_rects:
+            pg.draw.circle(self.screen, pg.Color("snow"),
+                           (star[0], round(star[1])), star[2])
+            #print(star[0][1])
+            star[1] += .8
+            if star[1] >= SCREEN_Y:
+                star[1] = 0
+        for star in self.screen_2_rects:
+            pg.draw.circle(self.screen, pg.Color("snow"),
+                           (star[0], round(star[1])), star[2])
+            star[1] += 1
+            if star[1] >= SCREEN_Y:
+                star[1] = 0
+        for star in self.screen_3_rects:
+            pg.draw.circle(self.screen, pg.Color("snow"),
+                           (star[0], round(star[1])), star[2])
+            star[1] += 1.5
+            if star[1] >= SCREEN_Y:
+                star[1] = 0
+
+    def genStars(self):
+        self.screen_1_rects = []
+        self.screen_2_rects = []
+        self.screen_3_rects = []
+        for x in range(120):
+            holder = []
+            holder.append(random.randint(0, SCREEN_X))
+            holder.append(random.randint(0, SCREEN_Y))
+            holder.append(
+                random.choice([
+                    1,
+                    1,
+                    2,
+                    2,
+                    2,
+                    3,
+                    3,
+                    3,
+                    3,
+                    3,
+                    4,
+                    4,
+                ]))
+            #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
+            self.screen_1_rects.append(holder)
+        for x in range(120):
+            holder = []
+            holder.append(random.randint(0, SCREEN_X))
+            holder.append(random.randint(0, SCREEN_Y))
+            holder.append(
+                random.choice(
+                    [1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4]))
+            #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
+            self.screen_2_rects.append(holder)
+        for x in range(120):
+            holder = []
+            holder.append(random.randint(0, SCREEN_X))
+            holder.append(random.randint(0, SCREEN_Y))
+            holder.append(
+                random.choice(
+                    [1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4]))
+            #pg.draw.circle(self.screen, silver, (rand_x, rand_y), randSize)
+            self.screen_3_rects.append(holder)
