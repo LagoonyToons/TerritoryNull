@@ -25,6 +25,13 @@ class Player():
         self.abilityTimer2 = [0]
         self.timeStopTimer = 0
         self.shrinkTimer = 0
+        if self.ability2 == "mine":
+            self.mineCount = 2
+        else:
+            self.mineCount = 0
+        self.invincibility = 0
+        self.timeStopCounter = 0
+        self.timeStopIncreaseToCooldown = 0
 
         self.abilityDelay = playerList[3][2]
         self.abilityDelay2 = playerList[4][2]
@@ -32,6 +39,13 @@ class Player():
         self.soundEffects = soundEffects
 
     def update(self, speedMultiplier):
+        if self.timeStopIncreaseToCooldown > 0:
+            self.timeStopCounter -= 1*speedMultiplier
+            if self.timeStopCounter <= 0:
+                self.timeStopIncreaseToCooldown -= 5
+                self.timeStopCounter = 40
+        if self.invincibility > 0:
+            self.invincibility -= 1*speedMultiplier
         if self.shrinkTimer > 0:
             self.shrinkTimer -= 1*speedMultiplier
             if self.shrinkTimer <= 0:
@@ -43,6 +57,9 @@ class Player():
             self.abilityTimer[0] -= 1*speedMultiplier
         if self.abilityTimer2[0] > 0:
             self.abilityTimer2[0] -= 1*speedMultiplier
+        if self.ability2 == "mine" and self.mineCount < 5 and self.abilityTimer2[0] <= 0:
+            self.mineCount += 1
+            self.abilityTimer2[0] = self.abilityDelay2
         return self.isDead()
 
     def isDead(self):
@@ -67,8 +84,12 @@ class Player():
             self.explodeFire(abilityTimer, args[1])
         elif ability == "bullet":
             self.bulletFire(abilityTimer, args[1])
+        elif ability == "shotgun":
+            self.shotgunFire(abilityTimer, args[1])
         elif ability == "tracker":
             self.trackerFire(abilityTimer, args[1], args[2])
+        elif ability == "mine":
+            self.mineFire(abilityTimer, args[1])
 
     def heal(self, abilityTimer):
         if abilityTimer == 1:
@@ -84,16 +105,11 @@ class Player():
 
     def timeStop(self, abilityTimer):
         if abilityTimer == 1:
-            if self.fuel >= 500 and self.abilityTimer[0] <= 0:
-                self.fuel -= 500
-                self.abilityTimer[0] = self.abilityDelay
-                self.timeStopTimer = 120
+            if self.abilityTimer[0] <= 0:
+                self.timeStopIncreaseToCooldown += 50
+                self.abilityTimer[0] = self.abilityDelay+self.timeStopIncreaseToCooldown
+                self.timeStopTimer = 35
                 pg.mixer.Channel(5).play(self.soundEffects[0])
-        elif abilityTimer == 2:
-            if self.fuel >= 500 and self.abilityTimer2[0] <= 0:
-                self.fuel -= 500
-                self.abilityTimer2[0] = self.abilityDelay2
-                self.timeStopTimer = 120
 
     def shrink(self, abilityTimer):
         if abilityTimer == 1:
@@ -162,11 +178,38 @@ class Player():
             bulletList.append(
                 Bullet(self.ability2Image, self.top_piece.x, self.top_piece.y))
             self.abilityTimer2[0] = self.abilityDelay2
+            self.abilityTimer[0] -= 7
+            if self.abilityTimer[0] < 0:
+                self.abilityTimer[0] = 0
+
+    def mineFire(self, abilityTimer, bulletList):
+        if self.mineCount > 0:
+            bulletList.append(
+                Mine(self.ability2Image, self.top_piece.x, self.top_piece.y))
+            self.mineCount -= 1
+            #self.abilityTimer2[0] = self.abilityDelay2
+
+    def shotgunFire(self, abilityTimer, bulletList):
+        speed = 5
+        if self.abilityTimer2[0] <= 0:
+            bulletList.append(
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, -speed, speed))
+            bulletList.append(
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, 0, speed))
+            bulletList.append(
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, speed, speed))
+            bulletList.append(
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(speed/2), round(speed-2)))
+            bulletList.append(
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(-speed/2), round(speed-2)))
+            self.abilityTimer2[0] = self.abilityDelay2
 
     def trackerFire(self, abilityTimer, bulletList, enemyList):
         if self.abilityTimer2[0] <= 0:
             bulletList.append(
-                Tracker(self.ability2Image, self.top_piece.x, self.top_piece.y, enemyList))
+                Tracker(self.ability2Image, self.top_piece.x-70, self.top_piece.y-40, enemyList))
+            bulletList.append(
+                Tracker(self.ability2Image, self.top_piece.x+90, self.top_piece.y-40, enemyList))
             self.abilityTimer2[0] = self.abilityDelay2
 
 
@@ -321,17 +364,23 @@ class Tracker:
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.speed = 20
+        self.speed = 16
         self.target = [0,0]
         self.currentLowest = 9999
         for enemy in enemyList:
             self.xDifference = abs(enemy.coordinates[0]-self.x)
             self.yDifference = abs(enemy.coordinates[1] - self.y)
             self.totalDifference = self.xDifference+self.yDifference
-            if self.totalDifference < self.currentLowest:
+            if self.totalDifference < self.currentLowest and not enemy.tracked:
                 self.currentLowest = self.totalDifference
                 self.target = enemy.coordinates
-        self.lifeTime = 180
+                enemy.tracked = True
+                try:
+                    storedenemy.tracked = False
+                except:
+                    pass
+                storedenemy = enemy
+        self.lifeTime = 120
 
     def update(self, player, bulletList, multiplier):
         self.lifeTime -= 1
@@ -342,7 +391,7 @@ class Tracker:
             self.xSpeed = round(self.xDifference*self.ratio)
             self.ySpeed = round(self.yDifference * self.ratio)
             #print(self.xSpeed, self.ySpeed)
-            print(self.target)
+            # print(self.target)
             # self.x = player.x
             self.y -= round(self.ySpeed*multiplier)
             self.rect.y = self.y
@@ -359,20 +408,26 @@ class Tracker:
 
 
 class Shotgun:
-    def __init__(self, image, x, y):
+    def __init__(self, image, x, y, x_speed, y_speed):
         self.name = "bullet"
         self.image = image
         self.x = x
         self.y = y
+        self.x_speed = x_speed
+        self.y_speed = y_speed
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.lifeSpan = 35
 
     def update(self, player, bulletList, multiplier):
+        self.lifeSpan -= 1
         # self.x = player.x
-        self.y -= round(5 * multiplier)
+        self.y -= round(self.y_speed * multiplier)
         self.rect.y = self.y
-        if self.rect.y <= -30:
+        self.x -= round(self.x_speed * multiplier)
+        self.rect.x = self.x
+        if self.rect.y <= 0 or self.rect.x <= 0 or self.rect.x >= SCREEN_X or self.rect.y >= SCREEN_Y or self.lifeSpan <= 0:
             bulletList.remove(self)
 
     def draw(self, screen):
@@ -382,19 +437,38 @@ class Shotgun:
 class Mine:
     def __init__(self, image, x, y):
         self.name = "mine"
+        self.exploding = False
         self.image = image
         self.x = x
         self.y = y
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.timeTillBoom = 200
+        self.x_size = 5
+        self.boomTime = 26
 
     def update(self, player, bulletList, multiplier):
+        if self.timeTillBoom > 0:
+            self.timeTillBoom -= 1
+            if self.timeTillBoom <= 0:
+                self.exploding = True
+                self.name = "laser"
+        else:
+            # print("bol")
+            self.rect = pg.Rect(self.x-self.x_size, self.y -
+                                self.x_size, self.x_size*2, self.x_size*2)
+            self.boomTime -= 1
+            self.x_size += 4
         # self.x = player.x
-        self.y -= round(5 * multiplier)
-        self.rect.y = self.y
-        if self.rect.y <= -30:
+       # self.y -= round(5 * multiplier)
+        #self.rect.y = self.y
+        if self.boomTime < 0:
             bulletList.remove(self)
 
     def draw(self, screen):
-        screen.blit(self.image, (self.x, self.y))
+        if not self.exploding:
+            screen.blit(self.image, (self.x, self.y))
+        else:
+            pg.draw.circle(screen, pg.Color("red"), (round(
+                self.x), round(self.y)), round(self.x_size-2))

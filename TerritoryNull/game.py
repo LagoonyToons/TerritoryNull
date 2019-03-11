@@ -106,8 +106,19 @@ class Game:
                         randomEnemyChoice = random.randint(0, 200)
                         break
                 if not bossExists:
+                    boss = BossShooter(500, -200, (pg.transform.scale(
+                        pg.image.load("image/cthuhlu.png"), (200, 200))), 4)
+                    self.enemies.append(boss)
+            elif randomEnemyChoice <= 174:
+                bossExists = False
+                for enemy in self.enemies:
+                    if enemy.type == "boss":
+                        bossExists = True
+                        randomEnemyChoice = random.randint(0, 200)
+                        break
+                if not bossExists:
                     boss = Boss(500, -200, (pg.transform.scale(
-                        pg.image.load("image/meteor.png"), (200, 200))), 10)
+                        pg.image.load("image/cthuhlu.png"), (200, 200))), 10)
                     self.enemies.append(boss)
             else:
                 enemy = Fuel(x, 0, self.fuelImg)
@@ -162,6 +173,11 @@ class Game:
             self.fuelBlit = self.player.fuel
             self.loopCount = 0
             #40, SCREEN_Y- 100
+        cooldownNumber = basicFont.render(str(self.player.abilityDelay+self.player.timeStopIncreaseToCooldown), True,
+                                   pg.Color("red"))
+        self.screen.blit(cooldownNumber, (SCREEN_X/2-100, 80))
+        for x in range(self.player.mineCount):
+            self.screen.blit(self.player.ability2Image, (SCREEN_X-50, SCREEN_Y-(50*x)))
         fuelThingy = basicFont.render(str(self.fuelBlit), True, pg.Color("blue"))
         self.screen.blit(fuelThingy, (20, SCREEN_Y - 50))
         songsLoaded = basicFont.render(
@@ -249,15 +265,15 @@ class Game:
                 self.screen, pg.Color("red"),
                 [round(SCREEN_X / 3), SCREEN_Y - 100, 80, 80], 0,
                 (math.pi * 2 *
-                 (self.player.abilityDelay - self.player.abilityTimer[0]) /
-                 self.player.abilityDelay), 5)
+                 (self.player.abilityDelay+self.player.timeStopIncreaseToCooldown - self.player.abilityTimer[0]) /
+                 (self.player.abilityDelay+self.player.timeStopIncreaseToCooldown)), 5)
         else:
             pg.draw.arc(
                 self.screen, pg.Color("green"),
                 [round(SCREEN_X / 3), SCREEN_Y - 100, 80, 80], 0,
                 (math.pi * 2 *
-                 (self.player.abilityDelay - self.player.abilityTimer[0]) /
-                 self.player.abilityDelay), 5)
+                 (self.player.abilityDelay+self.player.timeStopIncreaseToCooldown - self.player.abilityTimer[0]) /
+                 (self.player.abilityDelay+self.player.timeStopIncreaseToCooldown)), 5)
 
     # pg.draw.circle(self.screen, pg.Color("white"), (round(SCREEN_X/3), SCREEN_Y - 80), 30, 1)
     #self.screen.blit(self.player.abilityImage, (SCREEN_X/3-30, SCREEN_Y-180))

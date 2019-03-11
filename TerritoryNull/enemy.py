@@ -6,6 +6,7 @@ import random
 class Asteroid():
     def __init__(self, x, y, image):
         self.type = "enemy"
+        self.tracked = False
         self.image = image
         self.coordinates = [x, y]
         self.rect = self.image.get_rect()
@@ -20,8 +21,10 @@ class Asteroid():
             self.rect.y = self.coordinates[1]
         # print(piece.position)
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
-            player.hp -= 1
-            print(player.hp)
+            if player.invincibility <= 0:
+                player.hp -= 1
+                player.invincibility = 20
+            #print(player.hp)
             enemies.remove(self)
         for bullet in bulletList:
             if self.rect.colliderect(bullet.rect):
@@ -30,6 +33,8 @@ class Asteroid():
                         enemies.remove(self)
                     except:
                         pass
+                elif bullet.name == "mine":
+                    bullet.timeTillBoom = 1
                 else:
                     try:
                         enemies.remove(self)
@@ -49,6 +54,7 @@ class Fuel():
     def __init__(self, x, y, image):
         self.type = "upgrade"
         self.image = image
+        self.tracked = False
         self.coordinates = [x, y]
         self.rect = self.image.get_rect()
         self.rect.x = self.coordinates[0]
@@ -76,7 +82,10 @@ class Fuel():
             player.fuel += 500
             if player.fuel > player.maxFuel:
                 player.fuel = player.maxFuel
-            enemies.remove(self)
+            try:
+                enemies.remove(self)
+            except:
+                pass
 
     def draw(self, screen):
         screen.blit(self.image, (self.coordinates[0], self.coordinates[1]))
@@ -84,6 +93,7 @@ class Fuel():
 class Heal():
     def __init__(self, x, y, image):
         self.type = "upgrade"
+        self.tracked = False
         self.image = image
         self.coordinates = [x, y]
         self.rect = self.image.get_rect()
@@ -92,6 +102,15 @@ class Heal():
         self.speed = random.randint(4, 8)
 
     def update(self, player, enemies, speedMultiplier, bulletList, score):
+        for bullet in bulletList:
+            if self.rect.colliderect(bullet.rect):
+                if bullet.name == "bullet":
+                    try:
+                        player.hp += 1
+                        bulletList.remove(bullet)
+                        enemies.remove(self)
+                    except:
+                        pass
         if self.coordinates[1] >= SCREEN_Y:
             enemies.remove(self)
         else:
@@ -99,7 +118,10 @@ class Heal():
             self.rect.y = self.coordinates[1]
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             player.hp += 1
-            enemies.remove(self)
+            try:
+                enemies.remove(self)
+            except:
+                pass
 
     def draw(self, screen):
         screen.blit(self.image, (self.coordinates[0], self.coordinates[1]))
@@ -154,13 +176,16 @@ class GravityField(pg.sprite.Sprite):
             player.mid_piece.rect.x = player.mid_piece.x
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             if self.invulnerableFrames >= 60:
-                player.hp -= 1
+                if player.invincibility <= 0:
+                    player.hp -= 1
+                    player.invincibility = 20
                 self.kill()
 
 
 class Boss():
     def __init__(self, x, y, image, hp):
         self.type = "boss"
+        self.tracked = False
         self.image = image
         self.injuredImage = image.convert(24)
         self.injuredImage.set_alpha(128)
@@ -188,11 +213,14 @@ class Boss():
             self.fire(enemies)
 
         # print(piece.position)
-        if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect) and self.invincibility == 0:
-            player.hp -= 1
-            self.hp -= 1
-            self.invincibility = 25
-            score[0] += 500
+        if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
+            if self.invincibility == 0:
+                if player.invincibility <= 0:
+                    player.hp -= 1
+                    player.invincibility = 20
+                self.hp -= 1
+                self.invincibility = 25
+                score[0] += 500
         for bullet in bulletList:
             if self.rect.colliderect(bullet.rect):
                 if bullet.name == "laser":
@@ -203,12 +231,15 @@ class Boss():
                             self.invincibility = 25
                     except:
                         pass
+                elif bullet.name == "mine":
+                    bullet.timeTillBoom = 1
                 else:
                     try:
                         if self.invincibility == 0:
                             self.hp -= 1
                             score[0] += 500
                             self.invincibility = 25
+                            self.tracked = False
                     except:
                         pass
                     try:
@@ -229,9 +260,101 @@ class Boss():
         else:
             screen.blit(self.injuredImage, (self.coordinates[0], self.coordinates[1]))
 
+
+class BossShooter():
+    def __init__(self, x, y, image, hp):
+        self.type = "boss"
+        self.tracked = False
+        self.image = image
+        self.injuredImage = image.convert(24)
+        self.injuredImage.set_alpha(128)
+        self.coordinates = [x, y]
+        self.rect = self.image.get_rect()
+        self.rect.x = self.coordinates[0]
+        self.rect.y = self.coordinates[1]
+        self.speed = 4
+        self.x_speed = self.speed
+        self.hp = hp
+        self.invincibility = 0
+        self.fireCounter = 60
+        self.bulletSpeed = 10
+
+    def update(self, player, enemies, speedMultiplier, bulletList, score):
+        self.coordinates[0] += self.x_speed*speedMultiplier
+        self.rect.x = self.coordinates[0]
+        #print(self.coordinates[0])
+        if self.coordinates[0] > SCREEN_X-self.rect.width or self.coordinates[0] < 0:
+            self.x_speed *= -1
+        if self.fireCounter > 0:
+            self.fireCounter -= 1
+        if self.invincibility > 0:
+            self.invincibility -= 1
+        if self.hp <= 0:
+            enemies.remove(self)
+        if self.coordinates[1] < 0:
+            self.coordinates[1] += self.speed*speedMultiplier
+            self.rect.y = self.coordinates[1]
+        #self.coordinates[0] = 500
+        if self.fireCounter == 0:
+            self.fire(enemies, player)
+
+        # print(piece.position)
+        if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
+            if self.invincibility == 0:
+                if player.invincibility <= 0:
+                    player.hp -= 1
+                    player.invincibility = 20
+                self.hp -= 1
+                self.invincibility = 25
+                score[0] += 1200
+        for bullet in bulletList:
+            if self.rect.colliderect(bullet.rect):
+                if bullet.name == "laser":
+                    try:
+                        if self.invincibility == 0:
+                            self.hp -= 1
+                            score[0] += 1200
+                            self.invincibility = 25
+                    except:
+                        pass
+                elif bullet.name == "mine":
+                    bullet.timeTillBoom = 1
+                else:
+                    try:
+                        if self.invincibility == 0:
+                            self.hp -= 1
+                            score[0] += 1200
+                            self.invincibility = 25
+                            self.tracked = False
+                    except:
+                        pass
+                    try:
+                        bulletList.remove(bullet)
+                    except:
+                        pass
+
+    def fire(self, enemyList, player):
+        self.xDifference = self.coordinates[0]+100 - player.top_piece.x
+        self.yDifference = self.coordinates[1]+100 - player.top_piece.y
+        self.ratio = self.bulletSpeed/(abs(self.xDifference) + abs(self.yDifference))
+        self.xSpeed = self.xDifference*self.ratio
+        self.ySpeed = self.yDifference * self.ratio
+        bullet = bossBullet(
+            self.coordinates[0]+100, self.coordinates[1]+100, -self.xSpeed, -self.ySpeed)
+        enemyList.append(bullet)
+        self.fireCounter = 30
+
+    def draw(self, screen):
+        if self.invincibility == 0:
+            screen.blit(self.image, (self.coordinates[0], self.coordinates[1]))
+        else:
+            screen.blit(self.injuredImage,
+                        (self.coordinates[0], self.coordinates[1]))
+
 class bossBullet:
     def __init__(self, x, y, dx, dy):
         self.type = "bullet"
+        self.tracked = False
         self.x = x
         self.y = y
         self.coordinates = [-1000, -1000]
@@ -242,15 +365,17 @@ class bossBullet:
         self.rect = pg.rect.Rect(x, y, self.size, self.size)
 
     def update(self, player, enemies, speedMultiplier, bulletList, score):
-        self.rect = pg.rect.Rect(self.x, self.y, self.size, self.size)
+        self.rect = pg.rect.Rect(round(self.x), round(self.y), self.size, self.size)
         if self.y >= SCREEN_Y or self.x >= SCREEN_X or self.x <= 0:
             enemies.remove(self)
         else:
             self.x += self.dx
             self.y += self.dy
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
-            player.hp -= 1
-            print(player.hp)
+            if player.invincibility <= 0:
+                player.hp -= 1
+                player.invincibility = 20
+            #print(player.hp)
             enemies.remove(self)
         for bullet in bulletList:
             if self.rect.colliderect(bullet.rect):
@@ -259,6 +384,8 @@ class bossBullet:
                         enemies.remove(self)
                     except:
                         pass
+                elif bullet.name == "mine":
+                    bullet.timeTillBoom = 1
                 else:
                     try:
                         enemies.remove(self)
