@@ -6,6 +6,7 @@ import random
 SCREEN_X, SCREEN_Y = (1200, 700)
 pg.font.init()
 basicFont = pg.font.SysFont('pressstart2pregular', 48)
+descriptionFont = pg.font.SysFont('pressstart2pregular', 24)
 
 
 # simple version for working with CWD

@@ -5,7 +5,7 @@ import sys
 class Player():
     def __init__(self, playerList, soundEffects):
         self.hp = playerList[0][0] + playerList[1][0] + playerList[2][0]
-        self.speed = playerList[0][2] + playerList[1][2] + playerList[2][2]
+        self.speed = self.storedSpeed = playerList[0][2] + playerList[1][2] + playerList[2][2]
         self.maxFuel = self.fuel = playerList[0][1] + playerList[1][1] + playerList[2][1]
         self.topw, self.toph = (48, 48)
         self.midw, self.midh = (48, 48)
@@ -22,6 +22,7 @@ class Player():
         self.abilityImage = playerList[3][0]
         self.ability2Image = pg.transform.scale(playerList[4][0], (20, 20))
         self.ability2 = playerList[4][1]
+        self.passive = playerList[5][1]
         self.abilityTimer2 = [0]
         self.timeStopTimer = 0
         self.shrinkTimer = 0
@@ -29,16 +30,31 @@ class Player():
             self.mineCount = 2
         else:
             self.mineCount = 0
+        self.exploding = False
+        if self.ability2 == "exploding":
+            self.explodyBar = 1000
+        else:
+            self.explodyBar = 0
+        self.invincibilityFrames = 20
         self.invincibility = 0
         self.timeStopCounter = 0
         self.timeStopIncreaseToCooldown = 0
+        self.energyRecoveryRate = 3
 
         self.abilityDelay = playerList[3][2]
         self.abilityDelay2 = playerList[4][2]
 
         self.soundEffects = soundEffects
 
+        self.passiveStateMachine()
+
+
     def update(self, speedMultiplier):
+        if self.explodyBar < 600 and self.ability2 == "explosion":
+            self.explodyBar += self.energyRecoveryRate*speedMultiplier
+        if self.exploding == True and self.explodyBar > 0:
+            self.explodyBar -= 12*speedMultiplier
+            #print(self.explodyBar)
         if self.timeStopIncreaseToCooldown > 0:
             self.timeStopCounter -= 1*speedMultiplier
             if self.timeStopCounter <= 0:
@@ -46,6 +62,8 @@ class Player():
                 self.timeStopCounter = 40
         if self.invincibility > 0:
             self.invincibility -= 1*speedMultiplier
+        elif not self.exploding:
+            self.speed = self.storedSpeed
         if self.shrinkTimer > 0:
             self.shrinkTimer -= 1*speedMultiplier
             if self.shrinkTimer <= 0:
@@ -57,7 +75,7 @@ class Player():
             self.abilityTimer[0] -= 1*speedMultiplier
         if self.abilityTimer2[0] > 0:
             self.abilityTimer2[0] -= 1*speedMultiplier
-        if self.ability2 == "mine" and self.mineCount < 5 and self.abilityTimer2[0] <= 0:
+        if self.ability2 == "mine" and self.mineCount < 3 and self.abilityTimer2[0] <= 0:
             self.mineCount += 1
             self.abilityTimer2[0] = self.abilityDelay2
         return self.isDead()
@@ -66,6 +84,26 @@ class Player():
         if self.hp <= 0:
             return True
         return False
+    def passiveStateMachine(self):
+        if self.passive == "bHealth":
+            self.hp += 3
+        elif self.passive == "bSpeed":
+            self.speed += 3
+        elif self.passive == "bFuel":
+            self.maxFuel += 2000
+            self.fuel += 2000
+        elif self.passive == "bIFrames":
+            self.invincibilityFrames *= 2
+        elif self.passive == "dACooldown":
+            self.abilityDelay *= .8
+            self.abilityDelay = round(self.abilityDelay)
+        elif self.passive == "dGCooldown":
+            self.abilityDelay2 *= .8
+            self.abilityDelay2 = round(self.abilityDelay2)
+            self.energyRecoveryRate *= 1.35
+        elif self.passive == "bScore":
+            pass
+
 
     def abilityStateMachine(self, ability, abilityTimer, *args):
         if ability == "heal":
@@ -80,14 +118,14 @@ class Player():
             self.deathBoost(abilityTimer, args[0])
         elif ability == "laserFire":
             self.laserFire(abilityTimer, args[1])
-        elif ability == "explosion":
-            self.explodeFire(abilityTimer, args[1])
+        # elif ability == "explosion":
+        #     self.explodeFire(abilityTimer, args[1])
         elif ability == "bullet":
             self.bulletFire(abilityTimer, args[1])
         elif ability == "shotgun":
             self.shotgunFire(abilityTimer, args[1])
         elif ability == "tracker":
-            self.trackerFire(abilityTimer, args[1], args[2])
+            self.trackerFire(abilityTimer, args[1], args[2], args[3])
         elif ability == "mine":
             self.mineFire(abilityTimer, args[1])
 
@@ -165,20 +203,20 @@ class Player():
                     Laser(self.ability2Image, self.top_piece.x,
                           self.top_piece.y))
                 self.abilityTimer2[0] = self.abilityDelay2
-    def explodeFire(self, abilityTimer, bulletList):
-        if abilityTimer == 2:
-            if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
-                bulletList.append(
-                    Explode(self.ability2Image, self.top_piece.x,
-                          self.top_piece.y))
-                self.fuel -= 100
-                self.abilityTimer2[0] = self.abilityDelay2
+    # def explodeFire(self, abilityTimer, bulletList):
+    #     if abilityTimer == 2:
+    #         if self.fuel >= 200 and self.abilityTimer2[0] <= 0:
+    #             bulletList.append(
+    #                 Explode(self.ability2Image, self.top_piece.x,
+    #                       self.top_piece.y))
+    #             self.fuel -= 100
+    #             self.abilityTimer2[0] = self.abilityDelay2
     def bulletFire(self, abilityTimer, bulletList):
         if self.abilityTimer2[0] <= 0:
             bulletList.append(
                 Bullet(self.ability2Image, self.top_piece.x, self.top_piece.y))
             self.abilityTimer2[0] = self.abilityDelay2
-            self.abilityTimer[0] -= 7
+            self.abilityTimer[0] -= 6
             if self.abilityTimer[0] < 0:
                 self.abilityTimer[0] = 0
 
@@ -190,27 +228,27 @@ class Player():
             #self.abilityTimer2[0] = self.abilityDelay2
 
     def shotgunFire(self, abilityTimer, bulletList):
-        speed = 5
+        speed = 10
         if self.abilityTimer2[0] <= 0:
             bulletList.append(
-                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, -speed, speed))
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(-speed/2), speed))
             bulletList.append(
                 Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, 0, speed))
             bulletList.append(
-                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, speed, speed))
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(speed/2), speed))
             bulletList.append(
-                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(speed/2), round(speed-2)))
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(speed/3), round(speed-2)))
             bulletList.append(
-                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(-speed/2), round(speed-2)))
+                Shotgun(self.ability2Image, self.top_piece.x, self.top_piece.y, round(-speed/3), round(speed-2)))
             self.abilityTimer2[0] = self.abilityDelay2
 
-    def trackerFire(self, abilityTimer, bulletList, enemyList):
+    def trackerFire(self, abilityTimer, bulletList, enemyList, difficulty):
         if self.abilityTimer2[0] <= 0:
             bulletList.append(
                 Tracker(self.ability2Image, self.top_piece.x-70, self.top_piece.y-40, enemyList))
             bulletList.append(
                 Tracker(self.ability2Image, self.top_piece.x+90, self.top_piece.y-40, enemyList))
-            self.abilityTimer2[0] = self.abilityDelay2
+            self.abilityTimer2[0] = self.abilityDelay2-(difficulty*1.5)
 
 
 
@@ -308,7 +346,7 @@ class Explode:
         self.y = y
         self.y_size = 0
         self.x_size = 5
-        self.count = 120
+        #self.count = 120
         self.rect = pg.Rect(self.x+15, self.y-35, self.x_size,
                             self.y+80)
 
@@ -318,10 +356,10 @@ class Explode:
         if self.x_size < 120:
             self.x_size += 8*multiplier
         #self.x_size += 4
-        self.count -= 1 * multiplier
+        #self.count -= 1 * multiplier
         self.rect = pg.Rect(self.x-self.x_size, self.y-self.x_size, self.x_size*2, self.x_size*2)
-        if self.count <= 0:
-            bulletList.remove(self)
+        #if self.count <= 0:
+            #bulletList.remove(self)
         # for enemy in enemies:
         #     if self.rect.colliderect(enemy.rect):
         #         enemies.remove(enemy)
@@ -346,7 +384,7 @@ class Bullet:
 
     def update(self, player, bulletList, multiplier):
         # self.x = player.x
-        self.y -= round(5*multiplier)
+        self.y -= round(13*multiplier)
         self.rect.y = self.y
         if self.rect.y <= -30:
             bulletList.remove(self)
@@ -368,8 +406,8 @@ class Tracker:
         self.target = [0,0]
         self.currentLowest = 9999
         for enemy in enemyList:
-            self.xDifference = abs(enemy.coordinates[0]-self.x)
-            self.yDifference = abs(enemy.coordinates[1] - self.y)
+            self.xDifference = abs(enemy.rect.centerx-self.x)
+            self.yDifference = abs(enemy.rect.centery - self.y)
             self.totalDifference = self.xDifference+self.yDifference
             if self.totalDifference < self.currentLowest and not enemy.tracked:
                 self.currentLowest = self.totalDifference
@@ -409,7 +447,7 @@ class Tracker:
 
 class Shotgun:
     def __init__(self, image, x, y, x_speed, y_speed):
-        self.name = "bullet"
+        self.name = "shotgun"
         self.image = image
         self.x = x
         self.y = y
@@ -418,10 +456,10 @@ class Shotgun:
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.lifeSpan = 35
+        self.lifeSpan = 25
 
     def update(self, player, bulletList, multiplier):
-        self.lifeSpan -= 1
+        self.lifeSpan -= 1*multiplier
         # self.x = player.x
         self.y -= round(self.y_speed * multiplier)
         self.rect.y = self.y
@@ -441,6 +479,8 @@ class Mine:
         self.image = image
         self.x = x
         self.y = y
+        self.yVel = 14
+        self.yVelDecayRate = .5
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -449,6 +489,11 @@ class Mine:
         self.boomTime = 26
 
     def update(self, player, bulletList, multiplier):
+        if self.yVel > 0:
+            self.y -= self.yVel
+            self.yVel -= self.yVelDecayRate
+            self.rect = pg.Rect(self.x-self.x_size, self.y -
+                                self.x_size, self.x_size*2, self.x_size*2)
         if self.timeTillBoom > 0:
             self.timeTillBoom -= 1
             if self.timeTillBoom <= 0:
@@ -459,7 +504,7 @@ class Mine:
             self.rect = pg.Rect(self.x-self.x_size, self.y -
                                 self.x_size, self.x_size*2, self.x_size*2)
             self.boomTime -= 1
-            self.x_size += 4
+            self.x_size += 3
         # self.x = player.x
        # self.y -= round(5 * multiplier)
         #self.rect.y = self.y

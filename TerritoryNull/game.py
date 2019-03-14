@@ -41,7 +41,7 @@ class Game:
     def gameloop(self):
         self.counter = 0
         self.difficultyCount = 0
-        self.difficultyLevel = 0
+        self.difficultyLevel = 3
         while not self.dead:
             self.currentTime = time.time()
             try:
@@ -66,12 +66,19 @@ class Game:
             self.highScore[0] += round(11*self.speedMultiplier)
             self.dead = self.player.update(self.speedMultiplier)
             self.screenManagement()
-        return self.highScore[0]
+        if self.player.passive == "bScore":
+            self.highScore[0] = round(self.highScore[0]*1.35)
+            return self.highScore[0]
+        else:
+            return self.highScore[0]
 
     def enemySpawn(self):
         self.counter += 1
         self.difficultyCount += 1
-        if round(self.difficultyCount*self.speedMultiplier) > 800 and self.difficultyLevel <= 17:
+        difficultyLevel = basicFont.render(
+            str(int(self.difficultyLevel)), True, pg.Color("green"))
+        self.screen.blit(difficultyLevel, (800, 50))
+        if round(self.difficultyCount*self.speedMultiplier) > 600 and self.difficultyLevel < 20:
             self.difficultyLevel += 1
             self.difficultyCount = 0
         if round(self.counter*self.speedMultiplier) >= 30-self.difficultyLevel:
@@ -106,8 +113,7 @@ class Game:
                         randomEnemyChoice = random.randint(0, 200)
                         break
                 if not bossExists:
-                    boss = BossShooter(500, -200, (pg.transform.scale(
-                        pg.image.load("image/cthuhlu.png"), (200, 200))), 4)
+                    boss = BossShooter(500, -200, self.bossImg, self.hurtBossImg, 4)
                     self.enemies.append(boss)
             elif randomEnemyChoice <= 174:
                 bossExists = False
@@ -117,14 +123,18 @@ class Game:
                         randomEnemyChoice = random.randint(0, 200)
                         break
                 if not bossExists:
-                    boss = Boss(500, -200, (pg.transform.scale(
-                        pg.image.load("image/cthuhlu.png"), (200, 200))), 10)
+                    boss = Boss(500, -200, self.bossImg, self.hurtBossImg, 10)
                     self.enemies.append(boss)
             else:
                 enemy = Fuel(x, 0, self.fuelImg)
                 self.enemies.append(enemy)
 
     def controls(self):
+        if self.player.exploding == True and self.player.explodyBar <= 0:
+            self.player.exploding = False
+            self.bulletList = []
+            self.player.abilityTimer2[0] = self.player.abilityDelay2
+            self.player.speed = self.player.storedSpeed
         events = pg.event.get()
         for event in events:
             if event.type == pg.QUIT:
@@ -133,11 +143,23 @@ class Game:
                 if event.key == pg.K_p:
                     self.music.switchSong()
                 if event.key == pg.K_SPACE:
-                    self.player.abilityStateMachine(self.player.ability, 1, self.highScore, self.bulletList)
+                    self.player.abilityStateMachine(self.player.ability, 1, self.highScore, self.bulletList, self.difficultyLevel)
                 if event.key == pg.K_e:
-                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies)
+                    if self.player.ability2 == "explosion" and self.player.explodyBar > 0 and self.player.abilityTimer2[0] <= 0:
+                        self.player.exploding = True
+                        self.bulletList.append(
+                            Explode(self.player.ability2Image, self.player.top_piece.x, self.player.top_piece.y))
+                        self.player.speed = round(self.player.speed*.5)
+                    else:
+                        self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies, self.difficultyLevel)
                 if event.key == pg.K_q:
                     self.music.volumeToggle()
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_e and self.player.ability2 == "explosion" and self.player.exploding == True:
+                    self.player.exploding = False
+                    self.bulletList = []
+                    self.player.abilityTimer2[0] = self.player.abilityDelay2
+                    self.player.speed = self.player.storedSpeed
         pressed = pg.key.get_pressed()
         if pressed[pg.K_LEFT] and self.player.fuel > 0:
             self.player.mid_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
@@ -177,7 +199,7 @@ class Game:
                                    pg.Color("red"))
         self.screen.blit(cooldownNumber, (SCREEN_X/2-100, 80))
         for x in range(self.player.mineCount):
-            self.screen.blit(self.player.ability2Image, (SCREEN_X-50, SCREEN_Y-(50*x)))
+            self.screen.blit(self.player.ability2Image, (SCREEN_X-50, SCREEN_Y-(50*(x+1))))
         fuelThingy = basicFont.render(str(self.fuelBlit), True, pg.Color("blue"))
         self.screen.blit(fuelThingy, (20, SCREEN_Y - 50))
         songsLoaded = basicFont.render(
@@ -194,6 +216,8 @@ class Game:
             hpBlit = basicFont.render(
                 "Health:"+str(self.player.hp), True, pg.Color("pink"))
             self.screen.blit(hpBlit, (100, SCREEN_Y-80))
+        if self.player.ability2 == "explosion":
+            pg.draw.rect(self.screen, pg.Color("red"), [SCREEN_X-100, SCREEN_Y-100, 50, -(300*(self.player.explodyBar/1000))])
         if self.player.fuel <= 0:
             lowFuel = basicFont.render("NO FUEL!!!", True,
                                        pg.Color("red"))
@@ -215,7 +239,11 @@ class Game:
         self.abilityCooldown()
         fps = basicFont.render(str(int(self.clock.get_fps())), True, pg.Color("green"))
         self.screen.blit(fps, (500, 0))
-        highScoreBlit = basicFont.render(str(self.highScore[0]), True, pg.Color("red"))
+        if self.player.passive == "bScore":
+            highScoreBlit = basicFont.render(
+                str(round(self.highScore[0]*1.35)), True, pg.Color("red"))
+        else:
+            highScoreBlit = basicFont.render(str(self.highScore[0]), True, pg.Color("red"))
         self.screen.blit(highScoreBlit, (50, 150))
         pg.display.update()
         self.screen.fill(pg.Color("black"))
@@ -230,6 +258,8 @@ class Game:
         self.asteroids5 = pg.transform.scale(pg.image.load("image/meteor.png"), (100, 100))
         self.fuelImg = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
         self.healImg = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
+        self.bossImg=pg.transform.scale(pg.image.load("image/cthuhlu.png"), (200, 200))
+        self.hurtBossImg=pg.transform.scale(pg.image.load("image/cthuhluHit.png"), (200, 200))
 
     def load_sounds(self):
         self.soundEffects = []

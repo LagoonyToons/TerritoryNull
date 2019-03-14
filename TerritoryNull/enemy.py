@@ -23,7 +23,9 @@ class Asteroid():
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             if player.invincibility <= 0:
                 player.hp -= 1
-                player.invincibility = 20
+                player.invincibility = player.invincibilityFrames
+                if player.passive == "bIFrames":
+                    player.speed += 4
             #print(player.hp)
             enemies.remove(self)
         for bullet in bulletList:
@@ -64,7 +66,7 @@ class Fuel():
     def update(self, player, enemies, speedMultiplier, bulletList, score):
         for bullet in bulletList:
             if self.rect.colliderect(bullet.rect):
-                if bullet.name == "bullet":
+                if bullet.name == "bullet" or bullet.name == "shotgun":
                     try:
                         player.fuel += 500
                         if player.fuel > player.maxFuel:
@@ -104,7 +106,7 @@ class Heal():
     def update(self, player, enemies, speedMultiplier, bulletList, score):
         for bullet in bulletList:
             if self.rect.colliderect(bullet.rect):
-                if bullet.name == "bullet":
+                if bullet.name == "bullet" or bullet.name == "shotgun":
                     try:
                         player.hp += 1
                         bulletList.remove(bullet)
@@ -178,17 +180,20 @@ class GravityField(pg.sprite.Sprite):
             if self.invulnerableFrames >= 60:
                 if player.invincibility <= 0:
                     player.hp -= 1
-                    player.invincibility = 20
+                    player.invincibility = player.invincibilityFrames
+                    if player.passive == "bIFrames":
+                        player.speed += 4
                 self.kill()
 
 
 class Boss():
-    def __init__(self, x, y, image, hp):
+    def __init__(self, x, y, image, hurtImage, hp):
         self.type = "boss"
         self.tracked = False
         self.image = image
-        self.injuredImage = image.convert(24)
-        self.injuredImage.set_alpha(128)
+        self.injuredImage = hurtImage
+        # self.injuredImage = image.convert(24)
+        # self.injuredImage.set_alpha(128)
         self.coordinates = [x, y]
         self.rect = self.image.get_rect()
         self.rect.x = self.coordinates[0]
@@ -196,7 +201,7 @@ class Boss():
         self.speed = 3
         self.hp = hp
         self.invincibility = 0
-        self.fireCounter = 60
+        self.fireCounter = 30
 
     def update(self, player, enemies, speedMultiplier, bulletList, score):
         if self.fireCounter > 0:
@@ -205,7 +210,7 @@ class Boss():
             self.invincibility -= 1
         if self.hp <= 0:
             enemies.remove(self)
-        if self.coordinates[1] < 100:
+        if self.coordinates[1] < 150:
             self.coordinates[1] += self.speed*speedMultiplier
             self.rect.y = self.coordinates[1]
         self.coordinates[0] = 500
@@ -217,7 +222,9 @@ class Boss():
             if self.invincibility == 0:
                 if player.invincibility <= 0:
                     player.hp -= 1
-                    player.invincibility = 20
+                    player.invincibility = player.invincibilityFrames
+                    if player.passive == "bIFrames":
+                        player.speed += 4
                 self.hp -= 1
                 self.invincibility = 25
                 score[0] += 500
@@ -233,6 +240,18 @@ class Boss():
                         pass
                 elif bullet.name == "mine":
                     bullet.timeTillBoom = 1
+
+                elif bullet.name == "shotgun":
+                    try:
+                        if self.invincibility == 0:
+                            self.hp -= 1
+                            score[0] += 500
+                    except:
+                        pass
+                    try:
+                        bulletList.remove(bullet)
+                    except:
+                        pass
                 else:
                     try:
                         if self.invincibility == 0:
@@ -262,22 +281,21 @@ class Boss():
 
 
 class BossShooter():
-    def __init__(self, x, y, image, hp):
+    def __init__(self, x, y, image, hurtImage, hp):
         self.type = "boss"
         self.tracked = False
         self.image = image
-        self.injuredImage = image.convert(24)
-        self.injuredImage.set_alpha(128)
+        self.injuredImage = hurtImage
         self.coordinates = [x, y]
         self.rect = self.image.get_rect()
         self.rect.x = self.coordinates[0]
         self.rect.y = self.coordinates[1]
-        self.speed = 4
+        self.speed = 5
         self.x_speed = self.speed
         self.hp = hp
         self.invincibility = 0
-        self.fireCounter = 60
-        self.bulletSpeed = 10
+        self.fireCounter = 80
+        self.bulletSpeed = 13
 
     def update(self, player, enemies, speedMultiplier, bulletList, score):
         self.coordinates[0] += self.x_speed*speedMultiplier
@@ -303,7 +321,9 @@ class BossShooter():
             if self.invincibility == 0:
                 if player.invincibility <= 0:
                     player.hp -= 1
-                    player.invincibility = 20
+                    player.invincibility = player.invincibilityFrames
+                    if player.passive == "bIFrames":
+                        player.speed += 4
                 self.hp -= 1
                 self.invincibility = 25
                 score[0] += 1200
@@ -319,6 +339,17 @@ class BossShooter():
                         pass
                 elif bullet.name == "mine":
                     bullet.timeTillBoom = 1
+                elif bullet.name == "shotgun":
+                    try:
+                        if self.invincibility == 0:
+                            self.hp -= 1
+                            score[0] += 500
+                    except:
+                        pass
+                    try:
+                        bulletList.remove(bullet)
+                    except:
+                        pass
                 else:
                     try:
                         if self.invincibility == 0:
@@ -340,7 +371,7 @@ class BossShooter():
         self.xSpeed = self.xDifference*self.ratio
         self.ySpeed = self.yDifference * self.ratio
         bullet = bossBullet(
-            self.coordinates[0]+100, self.coordinates[1]+100, -self.xSpeed, -self.ySpeed)
+            self.coordinates[0]+100, self.coordinates[1]+100, -self.xSpeed, -self.ySpeed, 4)
         enemyList.append(bullet)
         self.fireCounter = 30
 
@@ -352,14 +383,14 @@ class BossShooter():
                         (self.coordinates[0], self.coordinates[1]))
 
 class bossBullet:
-    def __init__(self, x, y, dx, dy):
+    def __init__(self, x, y, dx, dy, size = 8):
         self.type = "bullet"
         self.tracked = False
         self.x = x
         self.y = y
         self.coordinates = [-1000, -1000]
         #print(x, y)
-        self.size = 8
+        self.size = size
         self.dx = dx
         self.dy = dy
         self.rect = pg.rect.Rect(x, y, self.size, self.size)
@@ -374,7 +405,9 @@ class bossBullet:
         if self.rect.colliderect(player.top_piece.rect) or self.rect.colliderect(player.bot_piece.rect) or self.rect.colliderect(player.mid_piece.rect):
             if player.invincibility <= 0:
                 player.hp -= 1
-                player.invincibility = 20
+                player.invincibility = player.invincibilityFrames
+                if player.passive == "bIFrames":
+                    player.speed += 4
             #print(player.hp)
             enemies.remove(self)
         for bullet in bulletList:
