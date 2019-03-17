@@ -5,8 +5,8 @@ import threading
 import random
 SCREEN_X, SCREEN_Y = (1200, 700)
 pg.font.init()
-basicFont = pg.font.SysFont('pressstart2pregular', 48)
-descriptionFont = pg.font.SysFont('pressstart2pregular', 24)
+basicFont = pg.font.Font('ARCADE_N.TTF', 18)
+descriptionFont = pg.font.Font('ARCADE_N.TTF', 8)
 
 
 # simple version for working with CWD

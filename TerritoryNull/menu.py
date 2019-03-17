@@ -1,6 +1,6 @@
 import pygame as pg
 from options import *
-from game import *
+from my_game import *
 from highscore import *
 from selectionScreen import *
 class Menu:

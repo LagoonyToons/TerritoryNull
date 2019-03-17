@@ -24,7 +24,8 @@ class selectionScreen:
         self.listOfPassives = ["image/heart.png",
                                "image/heart.png", "image/heart.png", "image/heart.png",  "image/heart.png", "image/heart.png", "image/heart.png"]
         self.passivesNames = ["bHealth", "bSpeed", "bFuel", "bIFrames", "dACooldown", "dGCooldown", "bScore"]
-
+        self.count = 0
+        self.secondaryCount = 0
         self.loadImages()
         self.genStats()
         self.loop()
@@ -34,7 +35,7 @@ class selectionScreen:
         self.cursorpos = 0
         self.arrowFlipX = SCREEN_X/2-120
         self.arrowX = SCREEN_X/2+60
-        self.offset = 30
+        self.offset = 25
         self.finalList = [self.tops[0], self.mids[0], self.bots[0], self.abilities[0], self.bullets[0], self.passives[0]]
         self.place = [0,0,0,0,0,0]
         while not self.done:
@@ -126,12 +127,19 @@ class selectionScreen:
                     self.done = True
 
     def blitImages(self):
-        rect=(SCREEN_X/2-40, 20+(80*self.cursorpos-1) + (self.offset*self.cursorpos), 90, 90)
-        pg.draw.rect(self.screen, pg.Color("grey"), rect)
+        if self.count == 0:
+            rect=(SCREEN_X/2-50, 20+(70*self.cursorpos-1) + (self.offset*self.cursorpos), 100, 100)
+            pg.draw.rect(self.screen, pg.Color("grey"), rect)
+            self.secondaryCount += 1
+            if self.secondaryCount > 35:
+                self.count = 20
+                self.secondaryCount = 0
+        else:
+            self.count -= 1
         for x in range(3):
-            self.screen.blit(self.finalList[x][3], (SCREEN_X/2-40, 20+(70*x-1) + (self.offset*x)))
+            self.screen.blit(self.finalList[x][3], (SCREEN_X/2-40, 20+(70*(x)) + (self.offset*x)))
         for x in range(3):
-            self.screen.blit(self.finalList[(x+3)][0], (SCREEN_X/2-40, 20+(70*(x+4-1)) + (self.offset*(x+4))))
+            self.screen.blit(self.finalList[(x+3)][0], (SCREEN_X/2-40, 20+(70*(x+3)) + (self.offset*(x+4))))
         for x in range(6):
             self.screen.blit(self.arrow, (self.arrowX, 20+ (70*x-1) + (35*x)))
             self.screen.blit(self.arrowFlip, (self.arrowFlipX, 20 + (70*x-1) + (35*x)))
