@@ -7,13 +7,31 @@ import Adafruit_GPIO.SPI as SPI
 
 
 class Led(Adafruit_WS2801.WS2801Pixels):
-    def __init__(self, count, clk=None, do=None, spi=None, gpio=None):
+    def __init__(self, count, rangesList,  clk=None, do=None, spi=None, gpio=None):
         super.__init__(count, clk=None, do=None, spi=None, gpio=None)
         self.state = "default"
-        self.started = False
-        self.color = 
 
-    def update(self):
+        self.perimeter_led_range = (rangesList[0], rangesList[1])
+        self.perimeterCount = self.perimeter_led_range[1] - self.perimeter_led_range[0]
+
+        self.left_vBar = (rangesList[2], rangesList[3])
+        self.left_vBar_count = self.left_vBar[1] - self.left_vBar[0]
+
+        self.right_vBar = (rangesList[4], rangesList[5])
+        self.right_vBar_count = self.right_vBar[1] - self.right_vBar[0]
+
+        self.left_hBar = (rangesList[6], rangesList[7])
+        self.left_hBar_count = self.left_hBar[1] - self.left_hBar[0]
+
+        self.right_hBar = (rangesList[8], rangesList[9])
+        self.right_hBar_count = self.right_hBar[1] - self.right_hBar[0]
+
+        self.layersList = [(0,0,0),(255,0,0),(255,255,0),(0,0,255),(0,255,0)]
+
+        self.started = False
+        self.color = (0,0,0)
+
+    def update(self, player):
         self.clear()
         if self.state == "default":
             self.default(color)
@@ -23,10 +41,71 @@ class Led(Adafruit_WS2801.WS2801Pixels):
             self.flicker(color) 
         if self.state == "rainbow":
             self.rainbow()
+
+        self.updateAbility(player)
+        self.updateGun(player)
+        self.updateFuel(player)
+        self.updateHP(player)
+
         self.show()
 
+    def updateHP(self, player):
+        layers = int(player.hp/self.right_vBar_count)
+        remainder = player.hp-layers
+        for x in self.right_vBar_count:
+            if remainder > x:
+                color = self.layersList[layers]
+            else:
+                color = self.layersList[layers-1]
+            self.set_pixel(x+self.right_vBar[0], self.RGB_to_color(color))
+
+
+    def updateFuel(self, player):
+        fuelRatio = player.fuel/player.maxFuel
+        if fuelRatio > .35:
+            for x in self.left_vBar_count:
+                if 1/self.left_hBar_count <= fuelRatio - ((1/self.left_hBar_count)*x):
+                    color = (255,165,0)
+                else:
+                    color = (0,0,0)
+                self.set_pixel(x+self.left_vBar[0], self.RGB_to_color(color))
+        else:
+            for x in self.left_vBar_count:
+                if 1/self.left_hBar_count <= fuelRatio - ((1/self.left_hBar_count)*x):
+                    color = (255,0,0)
+                else:
+                    color = (0,0,0)
+                self.set_pixel(x+self.left_vBar[0], self.RGB_to_color(color))
+
+    def updateAbility(self, player):
+        percentage = (player.abilityDelay+player.timeStopIncreaseToCooldown - player.abilityTimer[0]) / (player.abilityDelay+player.timeStopIncreaseToCooldown)
+        for x in self.left_hBar_count:
+            if percentage >= 1:
+                color = (0,255,0)
+            else:
+                if 1/self.left_hBar_count <= percentage - ((1/self.left_hBar_count)*x):
+                    color = (0,0,255)
+                else:
+                    percentageToFull = percentage - ((1/self.left_hBar_count)*x)/(1/self.left_hBar_count)
+                    color = (round(255*percentageToFull), round(255*percentageToFull), 0)
+            self.set_pixel(x+self.left_hBar[0], self.RGB_to_color(color))
+
+    def updateGun(self, player):
+        percentage = ((player.abilityDelay2 - player.abilityTimer2[0]) /player.abilityDelay2)
+        for x in self.right_hBar_count:
+            if percentage >= 1:
+                color = (0,255,0)
+            else:
+                if 1/self.right_hBar_count <= percentage - ((1/self.right_hBar_count)*x):
+                    color = (0,0,255)
+                else:
+                    percentageToFull = percentage - ((1/self.right_hBar_count)*x)/(1/self.right_hBar_count)
+                    color = (round(255*percentageToFull), round(255*percentageToFull), 0)
+            self.set_pixel(xself.right_hBar[0], self.RGB_to_color(color))
+
+
     def default(self, color=[255,0,0]):
-        for x in self.count():
+        for x in self.perimeterCount:
             self.set_pixel(x, self.RGB_to_color(color))
 
     def chain(self, color=[255, 0, 0]):
