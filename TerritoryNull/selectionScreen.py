@@ -5,9 +5,14 @@ from textFile import *
 import sys
 
 class selectionScreen:
-    def __init__(self, screen, music):
+    def __init__(self, screen, music, strip, joystick):
         self.screen = screen
         self.music = music
+        self.strip = strip
+        self.strip.started = False
+        self.strip.state = "alternate"
+        self.joystick = joystick
+        self.stickTimer = 20
 
         self.listOfTop = ["image/rocket_top.png", "image/basicTop.png", "image/penTop.png"]
         self.listOfMid = ["image/rocket_mid.png", "image/basicMid.png", "image/penMid.png"]
@@ -15,14 +20,14 @@ class selectionScreen:
 
         self.listOfAbilities = ["image/heart.png", "image/stopwatch.png", "image/transfusion.png", "image/explosion.png"]
         self.abilityNames = ["heal", "timeStop", "transfusion", "deathBoost"]
-        self.abilityTimers = [420, 70, 240, 1]
+        self.abilityTimers = [600, 70, 450, 1]
 
-        self.listOfBullets = ["image/laser.png", "image/bullet.png", "image/bullet.png", "image/explosion.png", "image/bullet.png", "image/explosion.png"]
+        self.listOfBullets = ["image/laser.png", "image/bullet.png", "image/tracker.png", "image/energy.png", "image/shotgun.png", "image/mine.png"]
         self.bulletNames = ["laserFire", "bullet", "tracker", "explosion", "shotgun", "mine"]
-        self.bulletTimers = [380, 20, 85, 95, 90, 180]
+        self.bulletTimers = [40, 25, 75, 50, 65, 125]
 
-        self.listOfPassives = ["image/heart.png",
-                               "image/heart.png", "image/heart.png", "image/heart.png",  "image/heart.png", "image/heart.png", "image/heart.png"]
+        self.listOfPassives = ["image/passives/hp.png",
+                               "image/passives/speed.png", "image/passives/fuel.png", "image/passives/invincible.png",  "image/passives/cooldown.png", "image/passives/frate.png", "image/passives/score.png"]
         self.passivesNames = ["bHealth", "bSpeed", "bFuel", "bIFrames", "dACooldown", "dGCooldown", "bScore"]
         self.count = 0
         self.secondaryCount = 0
@@ -33,14 +38,19 @@ class selectionScreen:
     def loop(self):
         self.done = False
         self.cursorpos = 0
-        self.arrowFlipX = SCREEN_X/2-120
-        self.arrowX = SCREEN_X/2+60
+        self.arrowFlipX = 20
+        self.arrowX = 180
         self.offset = 25
         self.finalList = [self.tops[0], self.mids[0], self.bots[0], self.abilities[0], self.bullets[0], self.passives[0]]
         self.place = [0,0,0,0,0,0]
         while not self.done:
+            if self.stickTimer > 0:
+                self.stickTimer -= 1
+            #print(self.joystick.get_button(2))
             self.controls()
             self.blitImages()
+            self.strip.update()
+            #print(self.strip.timeBetween)
 
     def controls(self):
         events = pg.event.get()
@@ -125,10 +135,99 @@ class selectionScreen:
 
                 elif event.key == pg.K_SPACE and self.cursorpos == 6:
                     self.done = True
+            elif event.type == pg.JOYBUTTONDOWN:
+                if self.joystick.get_button(2) and self.cursorpos == 6:
+                    self.done = True
+                if self.joystick.get_button(4):
+                    self.music.volumeToggle()
+                if self.joystick.get_button(6):
+                    self.music.switchSong()
+                if self.joystick.get_button(8):
+                    if self.strip.enabled:
+                        self.strip.enabled = False
+                    else:
+                        self.strip.enabled = True
+            if event.type == pg.JOYAXISMOTION:
+                if self.joystick.get_axis(0) > 0 and self.stickTimer <= 0:
+                    if self.cursorpos == 0:
+                        self.place[self.cursorpos] -= 1
+                        if self.place[self.cursorpos] < 0 :
+                            self.place[self.cursorpos] = len(self.listOfTop)-1
+                        self.finalList[self.cursorpos] = self.tops[self.place[self.cursorpos]]
+                    elif self.cursorpos == 1:
+                        self.place[self.cursorpos] -= 1
+                        if self.place[self.cursorpos] < 0 :
+                            self.place[self.cursorpos] = len(self.listOfMid)-1
+                        self.finalList[self.cursorpos] = self.mids[self.place[self.cursorpos]]
+                    elif self.cursorpos == 2:
+                        self.place[self.cursorpos] -= 1
+                        if self.place[self.cursorpos] < 0 :
+                            self.place[self.cursorpos] = len(self.listOfBot)-1
+                        self.finalList[self.cursorpos] = self.bots[self.place[self.cursorpos]]
+                    elif self.cursorpos == 3:
+                        self.place[self.cursorpos] -= 1
+                        if self.place[self.cursorpos] < 0:
+                            self.place[self.cursorpos] = len(self.listOfAbilities)-1
+                        self.finalList[self.cursorpos] = self.abilities[self.place[self.cursorpos]]
+                    elif self.cursorpos == 4:
+                        self.place[self.cursorpos] -= 1
+                        if self.place[self.cursorpos] < 0:
+                            self.place[self.cursorpos] = len(
+                                self.listOfBullets) - 1
+                        self.finalList[self.cursorpos] = self.bullets[self.place[self.cursorpos]]
+                    elif self.cursorpos == 5:
+                        self.place[self.cursorpos] -= 1
+                        if self.place[self.cursorpos] < 0:
+                            self.place[self.cursorpos] = len(
+                                self.listOfPassives) - 1
+                        self.finalList[self.cursorpos] = self.passives[self.place[self.cursorpos]]
+                    self.stickTimer = 20
 
+                if self.joystick.get_axis(0) < 0 and self.stickTimer <= 0:
+                    if self.cursorpos == 0:
+                        self.place[self.cursorpos] += 1
+                        if self.place[self.cursorpos] > len(self.listOfTop)-1 :
+                            self.place[self.cursorpos] = 0
+                        self.finalList[self.cursorpos] = self.tops[self.place[self.cursorpos]]
+                    elif self.cursorpos == 1:
+                        self.place[self.cursorpos] += 1
+                        if self.place[self.cursorpos] > len(self.listOfTop)-1 :
+                            self.place[self.cursorpos] = 0
+                        self.finalList[self.cursorpos] = self.mids[self.place[self.cursorpos]]
+                    elif self.cursorpos == 2:
+                        self.place[self.cursorpos] += 1
+                        if self.place[self.cursorpos] > len(self.listOfTop)-1 :
+                            self.place[self.cursorpos] = 0
+                        self.finalList[self.cursorpos] = self.bots[self.place[self.cursorpos]]
+                    elif self.cursorpos == 3:
+                        self.place[self.cursorpos] += 1
+                        if self.place[self.cursorpos] > len(self.listOfAbilities)-1:
+                            self.place[self.cursorpos] = 0
+                        self.finalList[self.cursorpos] = self.abilities[self.place[self.cursorpos]]
+                    elif self.cursorpos == 4:
+                        self.place[self.cursorpos] += 1
+                        if self.place[self.cursorpos] > len(self.listOfBullets)-1:
+                            self.place[self.cursorpos] = 0
+                        self.finalList[self.cursorpos] = self.bullets[self.place[self.cursorpos]]
+                    elif self.cursorpos == 5:
+                        self.place[self.cursorpos] += 1
+                        if self.place[self.cursorpos] > len(self.listOfPassives)-1:
+                            self.place[self.cursorpos] = 0
+                        self.finalList[self.cursorpos] = self.passives[self.place[self.cursorpos]]
+                    self.stickTimer = 20
+                if self.joystick.get_axis(1) > 0 and self.stickTimer <= 0:
+                    self.cursorpos -= 1
+                    if self.cursorpos < 0:
+                        self.cursorpos = 6
+                    self.stickTimer = 20
+                if self.joystick.get_axis(1) < 0 and self.stickTimer <= 0:
+                    self.cursorpos += 1
+                    if self.cursorpos > 6:
+                        self.cursorpos = 0
+                    self.stickTimer = 20
     def blitImages(self):
         if self.count == 0:
-            rect=(SCREEN_X/2-50, 20+(70*self.cursorpos-1) + (self.offset*self.cursorpos), 100, 100)
+            rect=(82, 20+(70*self.cursorpos-1) + (self.offset*self.cursorpos), 100, 100)
             pg.draw.rect(self.screen, pg.Color("grey"), rect)
             self.secondaryCount += 1
             if self.secondaryCount > 35:
@@ -137,26 +236,27 @@ class selectionScreen:
         else:
             self.count -= 1
         for x in range(3):
-            self.screen.blit(self.finalList[x][3], (SCREEN_X/2-40, 20+(70*(x)) + (self.offset*x)))
-        for x in range(3):
-            self.screen.blit(self.finalList[(x+3)][0], (SCREEN_X/2-40, 20+(70*(x+3)) + (self.offset*(x+4))))
+            self.screen.blit(self.finalList[x][3], (90, 20+(70*(x)) + (self.offset*x)))
+        for x in range(2):
+            self.screen.blit(self.finalList[(x+3)][0], (90, 20+(70*(x+3)) + (self.offset*(x+4))))
+        self.screen.blit(self.finalList[(5)][0], (70, (70*(6.5)) + (self.offset+(8))))
         for x in range(6):
             self.screen.blit(self.arrow, (self.arrowX, 20+ (70*x-1) + (35*x)))
             self.screen.blit(self.arrowFlip, (self.arrowFlipX, 20 + (70*x-1) + (35*x)))
         # self.finalList[self.cursorpos] = self.abilities[self.place[self.cursorpos]]
         for x in range(len(abilityText[self.place[3]])):
             text = descriptionFont.render((abilityText[self.place[3]][x]), True, pg.Color("green"))
-            self.screen.blit(text, (SCREEN_X-450, SCREEN_Y/2-100 + (x*40)))
+            self.screen.blit(text, (SCREEN_X/2-100, 350 + (x*40)))
         for x in range(len(gunText[self.place[4]])):
             text = descriptionFont.render(
                 (gunText[self.place[4]][x]), True, pg.Color("green"))
-            self.screen.blit(text, (SCREEN_X-450, SCREEN_Y/2+50 + (x*40)))
+            self.screen.blit(text, (SCREEN_X/2-100, 450 + (x*40)))
         for x in range(len(passiveText[self.place[5]])):
             text = descriptionFont.render(
                 (passiveText[self.place[5]][x]), True, pg.Color("green"))
-            self.screen.blit(text, (SCREEN_X-450, SCREEN_Y/2+200 + (x*40)))
+            self.screen.blit(text, (SCREEN_X/2-100, 550 + (x*40)))
         text = basicFont.render("START!", True, pg.Color("green"))
-        self.screen.blit(text, (SCREEN_X/2-40, 150+(70*(6-1)) + (self.offset*5)))
+        self.screen.blit(text, (80, 150+(70*(6-1)) + (self.offset*5)))
         self.blitStats()
         pg.display.update()
         self.screen.fill(pg.Color("black"))
@@ -180,20 +280,20 @@ class selectionScreen:
         textTotalSpeed = topspeed + midspeed + botspeed
 
         HP = basicFont.render("HP: " + str(textTotalHp), True, pg.Color("green"))
-        self.screen.blit(HP, (30, 400))
+        self.screen.blit(HP, (30, SCREEN_Y/2+70))
         FUEL = basicFont.render("FUEL: " + str(textTotalFuel), True, pg.Color("green"))
-        self.screen.blit(FUEL, (30, 470))
+        self.screen.blit(FUEL, (30, SCREEN_Y/2+140))
         SPEED = basicFont.render("SPEED: " + str(textTotalSpeed), True, pg.Color("green"))
-        self.screen.blit(SPEED, (30, 540))
+        self.screen.blit(SPEED, (30, SCREEN_Y/2+210))
 
         for x in range(textTotalHp):
-            rect=(250 + (x*20), 400, 15, 25)
+            rect=(250 + (x*20), SCREEN_Y/2+70, 15, 25)
             pg.draw.rect(self.screen, pg.Color("red"), rect)
         for x in range(round(textTotalFuel/500)):
-            rect=(250 + (x*20), 470, 15, 25)
+            rect=(250 + (x*20), SCREEN_Y/2+140, 15, 25)
             pg.draw.rect(self.screen, pg.Color("red"), rect)
         for x in range(round(textTotalSpeed)):
-            rect=(250 + (x*20), 540, 15, 25)
+            rect=(250 + (x*20), SCREEN_Y/2+210, 15, 25)
             pg.draw.rect(self.screen, pg.Color("red"), rect)
 
     def loadImages(self):
@@ -221,7 +321,7 @@ class selectionScreen:
             self.img = pg.transform.scale(pg.image.load(x), (80, 80))
             self.bulletImages.append(self.img)
         for x in self.listOfPassives:
-            self.img = pg.transform.scale(pg.image.load(x), (80, 80))
+            self.img = pg.transform.scale(pg.image.load(x), (120, 120))
             self.passivesImages.append(self.img)
 
 
