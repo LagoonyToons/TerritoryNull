@@ -3,7 +3,7 @@ import os
 import pygame as pg
 import threading
 import random
-SCREEN_X, SCREEN_Y = (1200, 700)
+SCREEN_X, SCREEN_Y = (720, 1280)
 pg.font.init()
 basicFont = pg.font.Font('ARCADE_N.TTF', 18)
 descriptionFont = pg.font.Font('ARCADE_N.TTF', 8)
@@ -15,14 +15,19 @@ class songThread(threading.Thread):
         self.initializedSongs = []
         threading.Thread.__init__(self)
         self.threadID = threadID
+        self.going = True
         self.name = name
         self.songList = songList
+        self.adventureTime = [pg.mixer.Sound("egg/1.ogg"), pg.mixer.Sound("egg/2.ogg"), pg.mixer.Sound("egg/3.ogg")]
+    def stop(self):
+        threading.Event.set()
     def run(self):
         #beginning_time = time.time()
         for item in self.songList:
             if ".ogg" in item:
-                self.initialized_song = pg.mixer.Sound(item)
-                self.initializedSongs.append(self.initialized_song)
+                if self.going:
+                    self.initialized_song = pg.mixer.Sound(item)
+                    self.initializedSongs.append(self.initialized_song)
             #print("Song initialized, terminating process")
         # print("Loading Complete")
         # end_time = time.time()
@@ -76,6 +81,11 @@ class Start:
 
     def returnInitializedSongs(self):
         return self.thread1.initializedSongs
+    
+    def pause(self):
+        pg.mixer.Channel(0).pause()
+    def unpause(self):
+        pg.mixer.Channel(0).unpause()
 
     # while True: # main game loop
     #     for event in pg.event.get():

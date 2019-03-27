@@ -3,9 +3,9 @@
 #                     "tracker", "explosion", "shotgun", "mine"]
 abilityText = [["Restore life at the cost of fuel"]
 , ["Stop time! While time is stopped nothing can touch you", "be careful because it only lasts a small time and", "overusing this ability increases its cooldown"]
-, ["INSERT ABILITY DESCRIPTION HERE"]
-, ["Self destruct but instantly add 50000 to your score!", "Use this last second boost to obtain the highscore"]]
-gunText = [["Fire a laser which hits everything above the player!", "Be careful of the long cooldown"],
+, ["give yourself fuel along with 2 seconds of invincibility"]
+, ["Self destruct but instantly add 250,000 to your score!", "Use this last second boost to obtain the highscore"]]
+gunText = [["Fire a laser with a long range!", "watch your energy meter though"],
 ["Fire a small bullet", "don't be underwhelmed, this bullet has a short cooldown", "and every use reduces your ability's cooldown"],
 ["Fire two tracking bullets", "they wont target the same enemy either", "as the difficulty grows their cooldown shrinks!"],
 ["Enable energy shields to guard against all", "No fuel consumption but watch your energy meter"],

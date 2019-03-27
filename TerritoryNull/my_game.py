@@ -8,14 +8,21 @@ import time
 import math
 
 class Game:
-    def __init__(self, screen, music, playerStats):
+    def __init__(self, screen, music, playerStats, strip, joystick):
         self.clock = pg.time.Clock()
         self.load_images()
         self.load_sounds()
         self.player = Player(playerStats, self.soundEffects)
+        self.joystick = joystick
         self.screen = screen
         self.highScore = [0]
         self.music = music
+        self.strip = strip
+        self.strip.started = False
+        self.strip.state = "alternate"
+        self.color = (0,125, 0)
+        self.color2 = (0,0,125)
+        
 
         self.all_sprites = pg.sprite.Group()
         self.player_pieces = pg.sprite.Group()
@@ -43,6 +50,7 @@ class Game:
         self.difficultyCount = 0
         self.difficultyLevel = 3
         while not self.dead:
+            self.strip.update(self.color, self.player, self.color2)
             self.currentTime = time.time()
             try:
                 self.frameRate = round(1/(self.currentTime - self.time))
@@ -78,34 +86,39 @@ class Game:
         difficultyLevel = basicFont.render(
             str(int(self.difficultyLevel)), True, pg.Color("green"))
         self.screen.blit(difficultyLevel, (800, 50))
-        if round(self.difficultyCount*self.speedMultiplier) > 600 and self.difficultyLevel < 20:
+        if round(self.difficultyCount*self.speedMultiplier) > 350 and self.difficultyLevel < 24:
             self.difficultyLevel += 1
             self.difficultyCount = 0
         if round(self.counter*self.speedMultiplier) >= 30-self.difficultyLevel:
             self.counter = 0
-            randomSize = random.randint(1, 5)
+            randomSize = random.randint(1, 4)
             x = random.randint(0, SCREEN_X-100)
             randomEnemyChoice = random.randint(0,200)
+            randomsquid = random.randint(1,25000)
+            if randomEnemyChoice <= 10:
+                self.enemies.append(BigAsteroid(x,-150, self.biggestAsteroid, self.asteroids1))
             if randomEnemyChoice <= 150:
-                if randomSize == 1:
-                    enemy = Asteroid(x, 0, self.asteroids1)
-                elif randomSize == 2:
-                    enemy = Asteroid(x, 0, self.asteroids2)
-                elif randomSize == 3:
-                    enemy = Asteroid(x, 0, self.asteroids3)
-                elif randomSize == 4:
-                    enemy = Asteroid(x, 0, self.asteroids4)
-                elif randomSize == 5:
+                if randomsquid == 2:
                     enemy = Asteroid(x, 0, self.asteroids5)
+                else:
+                    #randomListIndex = random.randint(0,9)
+                    if randomSize == 1:
+                        enemy = Asteroid(x, 0, self.asteroids1)
+                    elif randomSize == 2:
+                        enemy = Asteroid(x, 0, self.asteroids2)
+                    elif randomSize == 3:
+                        enemy = Asteroid(x, 0, self.asteroids3)
+                    elif randomSize == 4:
+                        enemy = Asteroid(x, 0, self.asteroids4)
                 self.enemies.append(enemy)
-            elif randomEnemyChoice <= 170:
+            elif randomEnemyChoice <= 160:
                 if len(self.grav) == 0:
-                    gravObj = GravityField()
+                    gravObj = GravityField(self.holeAnim)
                     self.grav.add(gravObj)
-            elif randomEnemyChoice <= 172:
+            elif randomEnemyChoice <= 162:
                 enemy = Heal(x, 0, self.healImg)
                 self.enemies.append(enemy)
-            elif randomEnemyChoice <= 173:
+            elif randomEnemyChoice <= 168:
                 bossExists = False
                 for enemy in self.enemies:
                     if enemy.type == "boss":
@@ -123,18 +136,37 @@ class Game:
                         randomEnemyChoice = random.randint(0, 200)
                         break
                 if not bossExists:
-                    boss = Boss(500, -200, self.bossImg, self.hurtBossImg, 10)
+                    boss = Boss(200, -200, self.bossImg, self.hurtBossImg, 6)
                     self.enemies.append(boss)
             else:
                 enemy = Fuel(x, 0, self.fuelImg)
                 self.enemies.append(enemy)
 
     def controls(self):
+        if self.joystick.get_button(0):
+                self.player.abilityStateMachine(self.player.ability, 1, self.highScore, self.bulletList, self.difficultyLevel)
+        if self.joystick.get_button(1):
+            if self.player.ability2 == "explosion" and self.player.explodyBar > 0 and self.player.abilityTimer2[0] <= 0 and self.player.exploding == False:
+                self.player.exploding = True
+                self.bulletList.append(
+                    Explode(self.player.ability2Image, self.player.top_piece.x, self.player.top_piece.y))
+                self.player.speed = round(self.player.speed*.5)
+            elif self.player.ability2 == "laserFire" and self.player.abilityTimer2[0] <= 0 and self.player.exploding == False and self.player.explodyBar > 100 and len(self.bulletList) <= 0: 
+                self.player.firing = True
+                self.bulletList.append(
+                    Laser(self.player.ability2Image, self.player.top_piece.x, self.player.top_piece.y))
+            elif self.player.ability2 != "mine":
+                self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies, self.difficultyLevel, self.bulletImages)
+            
         if self.player.exploding == True and self.player.explodyBar <= 0:
             self.player.exploding = False
             self.bulletList = []
             self.player.abilityTimer2[0] = self.player.abilityDelay2
             self.player.speed = self.player.storedSpeed
+        if self.player.firing and self.player.explodyBar <= 0:
+            self.player.firing = False
+            self.bulletList = []
+            self.player.abilityTimer2[0] = self.player.abilityDelay2
         events = pg.event.get()
         for event in events:
             if event.type == pg.QUIT:
@@ -150,8 +182,12 @@ class Game:
                         self.bulletList.append(
                             Explode(self.player.ability2Image, self.player.top_piece.x, self.player.top_piece.y))
                         self.player.speed = round(self.player.speed*.5)
+                    elif self.player.ability2 == "laserFire" and self.player.abilityTimer2[0] <= 0 and self.player.exploding == False and self.player.explodyBar > 100:
+                        self.player.firing = True
+                        self.bulletList.append(
+                            Laser(self.player.ability2Image, self.player.top_piece.x, self.player.top_piece.y))
                     else:
-                        self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies, self.difficultyLevel)
+                        self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies, self.difficultyLevel, self.bulletImages)
                 if event.key == pg.K_q:
                     self.music.volumeToggle()
             if event.type == pg.KEYUP:
@@ -160,51 +196,81 @@ class Game:
                     self.bulletList = []
                     self.player.abilityTimer2[0] = self.player.abilityDelay2
                     self.player.speed = self.player.storedSpeed
+            elif event.type == pg.JOYBUTTONDOWN:
+                if self.joystick.get_button(1) and self.player.ability2 == "mine":
+                    self.player.abilityStateMachine(self.player.ability2, 2, self.highScore, self.bulletList, self.enemies, self.difficultyLevel, self.bulletImages)
+                if self.joystick.get_button(4):
+                    self.music.volumeToggle()
+                if self.joystick.get_button(6):
+                    self.music.switchSong()
+                if self.joystick.get_button(8):
+                    if self.strip.enabled:
+                        self.strip.enabled = False
+                    else:
+                        self.strip.enabled = True
+    
+            if not self.joystick.get_button(1) and self.player.exploding == True:
+                self.player.exploding = False
+                self.bulletList = []
+                self.player.abilityTimer2[0] = self.player.abilityDelay2
+                self.player.speed = self.player.storedSpeed
+            if not self.joystick.get_button(1) and self.player.firing == True:
+                self.player.firing = False
+                self.bulletList = []
+                self.player.abilityTimer2[0] = self.player.abilityDelay2
+                
+               
         pressed = pg.key.get_pressed()
-        if pressed[pg.K_LEFT] and self.player.fuel > 0:
-            self.player.mid_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(-self.player.speed*self.speedMultiplier, 0)
-            self.player.fuel -= round(2*self.speedMultiplier)
-        elif pressed[pg.K_RIGHT] and self.player.fuel > 0:
-            self.player.mid_piece.update(self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(self.player.speed*self.speedMultiplier, 0)
-            self.player.fuel -= round(2*self.speedMultiplier)
+        if pressed[pg.K_LEFT] or self.joystick.get_axis(0) > 0:
+            if self.player.fuel > 0:
+                self.player.mid_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.bot_piece.update(-self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.top_piece.update(-self.player.speed*self.speedMultiplier, 0)
+                self.player.fuel -= round(2*self.speedMultiplier)
+        elif pressed[pg.K_RIGHT] or self.joystick.get_axis(0) < 0:
+            if self.player.fuel > 0:
+                self.player.mid_piece.update(self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.bot_piece.update(self.player.speed*self.speedMultiplier, 0, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.top_piece.update(self.player.speed*self.speedMultiplier, 0)
+                self.player.fuel -= round(2*self.speedMultiplier)
         else:
             self.player.mid_piece.update(0, 0, self.player.top_piece.x, self.player.top_piece.y)
             self.player.bot_piece.update(0, 0, self.player.top_piece.x, self.player.top_piece.y)
             self.player.top_piece.update(0, 0)
             if self.player.fuel > 0:
                 self.player.fuel -= round(1*self.speedMultiplier)
-        if pressed[pg.K_UP] and self.player.fuel > 0:
-            self.player.mid_piece.update(0, -self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(0, -self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(0, -self.player.speed*self.speedMultiplier)
-            self.player.fuel -= round(1*self.speedMultiplier)
-        elif pressed[pg.K_DOWN] and self.player.fuel > 0:
-            self.player.mid_piece.update(0, self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.bot_piece.update(0, self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
-            self.player.top_piece.update(0, self.player.speed*self.speedMultiplier)
-            self.player.fuel -= round(1*self.speedMultiplier)
+        if pressed[pg.K_UP] or self.joystick.get_axis(1) > 0:
+            if self.player.fuel > 0:
+                self.player.mid_piece.update(0, -self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.bot_piece.update(0, -self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.top_piece.update(0, -self.player.speed*self.speedMultiplier)
+                self.player.fuel -= round(1*self.speedMultiplier)
+        elif pressed[pg.K_DOWN] or self.joystick.get_axis(1) < 0:
+            if self.player.fuel > 0:
+                self.player.mid_piece.update(0, self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.bot_piece.update(0, self.player.speed*self.speedMultiplier, self.player.top_piece.x, self.player.top_piece.y)
+                self.player.top_piece.update(0, self.player.speed*self.speedMultiplier)
+                self.player.fuel -= round(1*self.speedMultiplier)
 
     def screenManagement(self):
         self.starBlit()
+        for gravObj in self.grav:
+            self.screen.blit(gravObj.imageList[gravObj.currentFrame], (gravObj.x, gravObj.y))
         self.loopCount += 1
         if self.loopCount >= 30:
             self.fuelBlit = self.player.fuel
             self.loopCount = 0
             #40, SCREEN_Y- 100
-        cooldownNumber = basicFont.render(str(self.player.abilityDelay+self.player.timeStopIncreaseToCooldown), True,
-                                   pg.Color("red"))
-        self.screen.blit(cooldownNumber, (SCREEN_X/2-100, 80))
+        #cooldownNumber = basicFont.render(str(self.player.abilityDelay+self.player.timeStopIncreaseToCooldown), True,
+          #                         pg.Color("red"))
+        #self.screen.blit(cooldownNumber, (SCREEN_X/2-100, 80))
         for x in range(self.player.mineCount):
             self.screen.blit(self.player.ability2Image, (SCREEN_X-50, SCREEN_Y-(50*(x+1))))
         fuelThingy = basicFont.render(str(self.fuelBlit), True, pg.Color("blue"))
         self.screen.blit(fuelThingy, (20, SCREEN_Y - 50))
-        songsLoaded = basicFont.render(
-            str(len(self.music.returnInitializedSongs())), True, pg.Color("blue"))
-        self.screen.blit(songsLoaded, (20, 100))
+        #songsLoaded = basicFont.render(
+            #str(len(self.music.returnInitializedSongs())), True, pg.Color("blue"))
+        #self.screen.blit(songsLoaded, (20, 100))
         for enemy in self.enemies:
                 enemy.draw(self.screen)
         for bullet in self.bulletList:
@@ -216,8 +282,8 @@ class Game:
             hpBlit = basicFont.render(
                 "Health:"+str(self.player.hp), True, pg.Color("pink"))
             self.screen.blit(hpBlit, (100, SCREEN_Y-80))
-        if self.player.ability2 == "explosion":
-            pg.draw.rect(self.screen, pg.Color("red"), [SCREEN_X-100, SCREEN_Y-100, 50, -(300*(self.player.explodyBar/1000))])
+        if self.player.ability2 == "explosion" or self.player.ability2 == "laserFire":
+            pg.draw.rect(self.screen, pg.Color("red"), [SCREEN_X-100, SCREEN_Y-100, 50, -(300*(self.player.explodyBar/1200))])
         if self.player.fuel <= 0:
             lowFuel = basicFont.render("NO FUEL!!!", True,
                                        pg.Color("red"))
@@ -229,16 +295,17 @@ class Game:
             lowFuel = basicFont.render("LOW FUEL!!!", True,
                                       pg.Color("yellow"))
             self.screen.blit(lowFuel, (SCREEN_X/2-100, 80))
-        for gravObj in self.grav:
-            self.screen.blit(gravObj.imageCenter, (gravObj.x, gravObj.y))
-            self.screen.blit(gravObj.imageSurround, (gravObj.x2, gravObj.y2))
+            #self.screen.blit(gravObj.imageSurround, (gravObj.x2, gravObj.y2))
         self.screen.blit(self.player.top_piece.image, (self.player.top_piece.x, self.player.top_piece.y))
         self.screen.blit(self.player.mid_piece.image, (self.player.mid_piece.x, self.player.mid_piece.y))
         self.screen.blit(self.player.bot_piece.image, (self.player.bot_piece.x, self.player.bot_piece.y))
+        if self.player.invincibility > 0:
+            invTxt = descriptionFont.render("Invincibility Frames:  " + str(self.player.invincibility), True, pg.Color("yellow"))
+            self.screen.blit(invTxt, (SCREEN_X-240, 100))
         self.fuelblit()
         self.abilityCooldown()
-        fps = basicFont.render(str(int(self.clock.get_fps())), True, pg.Color("green"))
-        self.screen.blit(fps, (500, 0))
+       #fps = basicFont.render(str(int(self.clock.get_fps())), True, pg.Color("green"))
+       #self.screen.blit(fps, (500, 0))
         if self.player.passive == "bScore":
             highScoreBlit = basicFont.render(
                 str(round(self.highScore[0]*1.35)), True, pg.Color("red"))
@@ -250,12 +317,23 @@ class Game:
         self.clock.tick(60)
 
     def load_images(self):
+        self.holeAnim = []
+        for x in range(36):
+            self.thisNameDoesntEvenMatter = pg.transform.scale(pg.transform.rotate(pg.transform.scale(pg.image.load("image/grav.png"), (120, 120)), x*10), (120, 120))
+            self.holeAnim.append(self.thisNameDoesntEvenMatter)
+        self.bullet = pg.transform.scale(pg.image.load("image/bullet.png"), (20, 20))
+        self.bullet1 = pg.transform.rotate(self.bullet, 30)
+        self.bullet2 = pg.transform.rotate(self.bullet, 15)
+        self.bullet3 = pg.transform.rotate(self.bullet, -30)
+        self.bullet4 = pg.transform.rotate(self.bullet, -15)
+        self.bulletImages = [self.bullet, self.bullet1, self.bullet2, self.bullet3, self.bullet4]
         self.livesImg = pg.transform.scale(pg.image.load("image/lives.png"), (80, 80))
-        self.asteroids1 = pg.transform.scale(pg.image.load("image/meteor.png"), (80, 80))
-        self.asteroids2 = pg.transform.scale(pg.image.load("image/meteor.png"), (90, 90))
-        self.asteroids3 = pg.transform.scale(pg.image.load("image/meteor.png"), (70, 70))
-        self.asteroids4 = pg.transform.scale(pg.image.load("image/meteor.png"), (128, 128))
-        self.asteroids5 = pg.transform.scale(pg.image.load("image/meteor.png"), (100, 100))
+        self.asteroids1 = pg.transform.scale(pg.image.load("image/asteroids/small.png"), (80, 80))
+        self.asteroids2 = pg.transform.scale(pg.image.load("image/asteroids/medium.png"), (90, 90))
+        self.asteroids3 = pg.transform.scale(pg.image.load("image/asteroids/small.png"), (70, 70))
+        self.asteroids4 = pg.transform.scale(pg.image.load("image/asteroids/big.png"), (128, 128))
+        self.asteroids5 = pg.transform.scale(pg.image.load("image/asteroids/squidward.png"), (100, 100))
+        self.biggestAsteroid = pg.transform.scale(pg.image.load("image/asteroids/big.png"), (150, 150))
         self.fuelImg = pg.transform.scale(pg.image.load('image/fuel.png'), (80, 80))
         self.healImg = pg.transform.scale(pg.image.load('image/heart.png'), (40, 40))
         self.bossImg=pg.transform.scale(pg.image.load("image/cthuhlu.png"), (200, 200))

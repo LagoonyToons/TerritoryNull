@@ -4,11 +4,16 @@ import pickle
 import sys
 
 class HighScoreMenu:
-    def __init__(self, screen, music, score):
+    def __init__(self, screen, music, score, strip, joystick):
+        self.strip = strip
+        self.strip.started = False
+        self.strip.state = "chain"
         self.score = score[0]
         self.screen = screen
         self.music = music
         self.indexes = [1, 3, 5, 7, 9]
+        self.joystick = joystick
+        self.timer = 30
         self.genStars()
 
         try:
@@ -25,6 +30,8 @@ class HighScoreMenu:
 
     def loop(self):
         while True:
+            self.timer -= 1
+            self.strip.update((0,0,100))
             self.music.songState()
             events = pg.event.get()
             for event in events:
@@ -32,6 +39,18 @@ class HighScoreMenu:
                     pg.quit()
                     sys.exit()
                 if event.type == pg.KEYDOWN:
+                    return
+                elif event.type == pg.JOYBUTTONDOWN:
+                    if self.joystick.get_button(4):
+                        self.music.volumeToggle()
+                    if self.joystick.get_button(6):
+                        self.music.switchSong()
+                    if self.joystick.get_button(8):
+                        if self.strip.enabled:
+                            self.strip.enabled = False
+                        else:
+                            self.strip.enabled = True
+                if self.joystick.get_button(2) and self.timer <= 0:
                     return
             self.starBlit()
             text = basicFont.render(str(self.highscores[0]) + " : " + str(self.highscores[1]), True, pg.Color("royalblue"))
@@ -44,6 +63,8 @@ class HighScoreMenu:
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*5/8))
             text = basicFont.render(str(self.highscores[8]) + " : " + str(self.highscores[9]), True, pg.Color("red"))
             self.screen.blit(text,(SCREEN_X/4, SCREEN_Y*6/8))
+            text = basicFont.render("Your Score:   " + str(self.score), True, pg.Color("magenta"))
+            self.screen.blit(text,(SCREEN_X/8, 100))
             pg.display.update()
             self.screen.fill(pg.Color("black"))
 
@@ -65,14 +86,17 @@ class HighScoreMenu:
 
     def findPlayerName(self):
         self.done = False
+        self.initTimer = 20
         self.letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
              'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', "u", "v", "w", "x", "y", "z",
-             "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+             "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", " "]
         self.letter1 = self.letter2 = self.letter3 = self.letter4 = self.letters
         self.numpos1 = self.numpos2 = self.numpos3 = self.numpos4 = 0
         self.cursorpos = 0
         self.name = [self.letter1, self.letter2, self.letter3, self.letter4]
         while not self.done:
+            self.initTimer -= 1
+            self.strip.update((0,0,100))
             self.music.songState()
             self.eventHandler()
 
@@ -103,36 +127,36 @@ class HighScoreMenu:
                     if self.cursorpos == 0:
                         self.numpos1 -= 1
                         if self.numpos1 < 0:
-                            self.numpos1 = 35
+                            self.numpos1 = 36
                     elif self.cursorpos == 1:
                         self.numpos2 -= 1
                         if self.numpos2 < 0:
-                            self.numpos2 = 35
+                            self.numpos2 = 36
                     elif self.cursorpos == 2:
                         self.numpos3 -= 1
                         if self.numpos3 < 0:
-                            self.numpos3 = 35
+                            self.numpos3 = 36
                     elif self.cursorpos == 3:
                         self.numpos4 -= 1
                         if self.numpos4 < 0:
-                            self.numpos4 = 35
+                            self.numpos4 = 36
                             #name[cursorpos] -= 1
                 if event.key == pg.K_UP:
                     if self.cursorpos == 0:
                         self.numpos1 += 1
-                        if self.numpos1 > 35:
+                        if self.numpos1 > 36:
                             self.numpos1 = 0
                     elif self.cursorpos == 1:
                         self.numpos2 += 1
-                        if self.numpos2 > 35:
+                        if self.numpos2 > 36:
                             self.numpos2 = 0
                     elif self.cursorpos == 2:
                         self.numpos3 += 1
-                        if self.numpos3 > 35:
+                        if self.numpos3 > 36:
                             self.numpos3 = 0
                     elif self.cursorpos == 3:
                         self.numpos4 += 1
-                        if self.numpos4 > 35:
+                        if self.numpos4 > 36:
                             self.numpos4 = 0
                 if event.key == pg.K_LEFT:
                     self.cursorpos -= 1
@@ -145,6 +169,66 @@ class HighScoreMenu:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
+                
+            elif event.type == pg.JOYBUTTONDOWN:
+                if self.joystick.get_button(4):
+                    self.music.volumeToggle()
+                if self.joystick.get_button(6):
+                    self.music.switchSong()
+                if self.joystick.get_button(8):
+                    if self.strip.enabled:
+                        self.strip.enabled = False
+                    else:
+                        self.strip.enabled = True
+                if self.joystick.get_button(2) and self.initTimer <= 0:
+                    self.done = True
+            if self.joystick.get_axis(0) > 0 and self.initTimer <= 0:
+                self.initTimer = 15
+                self.cursorpos -= 1
+                if self.cursorpos < 0:
+                    self.cursorpos = 3
+            if self.joystick.get_axis(0) < 0 and self.initTimer <= 0:
+                self.initTimer = 15
+                self.cursorpos += 1
+                if self.cursorpos > 3:
+                    self.cursorpos = 0
+            if self.joystick.get_axis(1) < 0 and self.initTimer <= 0:
+                self.initTimer = 15
+                if self.cursorpos == 0:
+                    self.numpos1 -= 1
+                    if self.numpos1 < 0:
+                        self.numpos1 = 36
+                elif self.cursorpos == 1:
+                    self.numpos2 -= 1
+                    if self.numpos2 < 0:
+                        self.numpos2 = 36
+                elif self.cursorpos == 2:
+                    self.numpos3 -= 1
+                    if self.numpos3 < 0:
+                        self.numpos3 = 36
+                elif self.cursorpos == 3:
+                    self.numpos4 -= 1
+                    if self.numpos4 < 0:
+                        self.numpos4 = 36
+            if self.joystick.get_axis(1) > 0 and self.initTimer <= 0:
+                self.initTimer = 15
+                if self.cursorpos == 0:
+                    self.numpos1 += 1
+                    if self.numpos1 > 36:
+                        self.numpos1 = 0
+                elif self.cursorpos == 1:
+                    self.numpos2 += 1
+                    if self.numpos2 > 36:
+                        self.numpos2 = 0
+                elif self.cursorpos == 2:
+                    self.numpos3 += 1
+                    if self.numpos3 > 36:
+                        self.numpos3 = 0
+                elif self.cursorpos == 3:
+                    self.numpos4 += 1
+                    if self.numpos4 > 36:
+                        self.numpos4 = 0
+            
 
     def starBlit(self):
         for star in self.screen_1_rects:
